@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Leaderboard - Nizo Lugha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .profile-container { padding: 20px; text-align: center; }
+        
+        /* Tab Menu Styling */
+        .tab-menu {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 30px;
+            margin: 20px 0 30px;
+            padding: 5px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            color: var(--muted-text);
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: var(--zambia-blue);
+            color: white;
+        }
+
+        /* Stats & Header Styling */
+        .profile-header { padding: 20px 0; }
+        .profile-pic {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--zambia-blue);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 4px solid var(--card-bg);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-val { display: block; font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+        .stat-label { color: var(--muted-text); font-size: 0.8rem; }
+
+        /* Badge Styling */
+        .badge-row {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 10px 0 25px;
+            scrollbar-width: none;
+        }
+        .badge {
+            min-width: 70px;
+            height: 70px;
+            background: var(--card-bg);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        /* Leaderboard Styling */
+        .leaderboard-list { text-align: left; display: none; }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 18px;
+            margin-bottom: 12px;
+        }
+        .rank-item.top-three { border-left: 4px solid #FFD700; }
+        .rank-number { width: 30px; font-weight: bold; color: var(--kenya-orange); }
+        .rank-avatar { width: 40px; height: 40px; border-radius: 50%; background: #444; margin: 0 12px; display: flex; align-items: center; justify-content: center; }
+        .rank-info { flex-grow: 1; }
+        .rank-xp { font-weight: bold; color: var(--nigeria-green); }
+    </style>
+</head>
+<body class="primary-dark">
+    <div class="app-container profile-container">
+        
+        <div class="profile-header">
+            <div class="profile-pic"><i class="fas fa-user"></i></div>
+            <h2 style="margin: 0;">Lugha Learner</h2>
+            <p style="color: var(--muted-text); font-size: 0.9rem;">Joined January 2026</p>
+        </div>
+
+        <div class="tab-menu">
+            <div class="tab-btn active" id="tab-stats" onclick="switchTab('stats')">My Stats</div>
+            <div class="tab-btn" id="tab-leader" onclick="switchTab('leaderboard')">Leaderboard</div>
+        </div>
+
+        <div id="stats-view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-fire" style="color: #FF5722;"></i>
+                    <span id="user-streak" class="stat-val">0</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-bolt" style="color: #FFD700;"></i>
+                    <span id="user-xp" class="stat-val">0</span>
+                    <span class="stat-label">Total XP</span>
+                </div>
+            </div>
+
+            <h3 style="text-align: left; font-family: 'Montserrat'; font-size: 1.1rem;">My Badges</h3>
+            <div class="badge-row">
+                <div class="badge" title="Yoruba Beginner">🇳🇬</div>
+                <div class="badge" title="Swahili Starter">🇰🇪</div>
+                <div class="badge" style="opacity: 0.2;"><i class="fas fa-lock" style="font-size: 1rem;"></i></div>
+                <div class="badge" style="opacity: 0.2;"><i class="fas fa-lock" style="font-size: 1rem;"></i></div>
+            </div>
+
+            <a href="settings.html" class="card" style="justify-content: space-between; text-decoration: none; margin-top: 10px;">
+                <div style="display: flex; align-items: center; color: white;">
+                    <i class="fas fa-cog" style="margin-right: 15px; color: var(--muted-text);"></i>
+                    <span>Account Settings</span>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #444;"></i>
+            </a>
+        </div>
+
+        <div id="leaderboard-view" class="leaderboard-list">
+            <div class="rank-item top-three">
+                <div class="rank-number">1</div>
+                <div class="rank-avatar" style="background: #FFD700; color: #000;"><i class="fas fa-crown"></i></div>
+                <div class="rank-info"><strong>Chidi_99</strong><br><small style="color: var(--muted-text);">Igbo Specialist</small></div>
+                <div class="rank-xp">1,250 XP</div>
+            </div>
+            <div class="rank-item">
+                <div class="rank-number">2</div>
+                <div class="rank-avatar">A</div>
+                <div class="rank-info"><strong>Amina_K</strong><br><small style="color: var(--muted-text);">Hausa Learner</small></div>
+                <div class="rank-xp">980 XP</div>
+            </div>
+            <div class="rank-item" style="background: rgba(27, 153, 139, 0.1); border: 1px solid var(--nigeria-green);">
+                <div class="rank-number">14</div>
+                <div class="rank-avatar" style="background: var(--zambia-blue);">YOU</div>
+                <div class="rank-info"><strong>Lugha Learner</strong><br><small style="color: var(--muted-text);">Beginner</small></div>
+                <div id="leader-user-xp" class="rank-xp">0 XP</div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item active"><i class="fas fa-user"></i></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        // 1. Data Loading Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const stats = JSON.parse(localStorage.getItem('nizo_stats')) || { xp: 0, streak: 0 };
+            
+            // Update Stats View
+            document.getElementById('user-xp').innerText = stats.xp;
+            document.getElementById('user-streak').innerText = stats.streak;
+            
+            // Update User Row in Leaderboard
+            document.getElementById('leader-user-xp').innerText = stats.xp + " XP";
+        });
+
+        // 2. Tab Switching Logic
+        function switchTab(tab) {
+            const statsView = document.getElementById('stats-view');
+            const leaderView = document.getElementById('leaderboard-view');
+            const btnStats = document.getElementById('tab-stats');
+            const btnLeader = document.getElementById('tab-leader');
+
+            if (tab === 'stats') {
+                statsView.style.display = 'block';
+                leaderView.style.display = 'none';
+                btnStats.classList.add('active');
+                btnLeader.classList.remove('active');
+            } else {
+                statsView.style.display = 'none';
+                leaderView.style.display = 'block';
+                btnStats.classList.remove('active');
+                btnLeader.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
