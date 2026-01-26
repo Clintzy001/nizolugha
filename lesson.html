@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson - Nizo Lugha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .lesson-container {
+            text-align: center;
+            padding-top: 30px;
+        }
+        .progress-bar-top {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 10px;
+        }
+        .progress-fill {
+            width: 0%; 
+            height: 100%;
+            background: var(--nigeria-green);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+        .word-card {
+            background: var(--card-bg);
+            padding: 40px 20px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .native-word {
+            font-size: 2.5rem;
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 10px;
+        }
+        .translation {
+            font-size: 1.2rem;
+            color: var(--muted-text);
+            font-style: italic;
+        }
+        .audio-btn {
+            width: 80px;
+            height: 80px;
+            background: var(--kenya-orange);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s;
+        }
+        .audio-btn:active { transform: scale(0.9); }
+        .action-footer { margin-top: 50px; }
+        .btn-continue {
+            background: var(--zambia-blue);
+            color: white;
+            padding: 15px 60px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .btn-continue:active { opacity: 0.8; }
+
+        /* Success Overlay Styling */
+        #success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 18, 18, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .trophy-icon {
+            font-size: 5rem;
+            color: #FFD700;
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .xp-badge {
+            background: #FFD700;
+            color: #121212;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="success-overlay">
+        <i class="fas fa-trophy trophy-icon"></i>
+        <h2 style="font-family: 'Montserrat';">Lesson Complete!</h2>
+        <div class="xp-badge">+15 XP Earned</div>
+        <p style="color: var(--muted-text); margin-bottom: 30px;">Hongera! You are doing great.</p>
+        <a href="index.html" class="btn-continue" style="background: var(--nigeria-green);">FINISH</a>
+    </div>
+
+    <div class="app-container lesson-container">
+        <div class="lesson-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px;">
+            <a href="index.html" style="color: var(--text-white); font-size: 1.5rem; text-decoration: none;">
+                <i class="fas fa-times"></i>
+            </a>
+            <div class="progress-bar-top" style="flex-grow: 1; margin: 0 20px;">
+                <div class="progress-fill"></div>
+            </div>
+            <div style="width: 24px;"></div>
+        </div>
+
+        <div class="word-card">
+            <p id="lang-label" style="color: var(--kenya-orange); font-weight: bold; text-transform: uppercase;">LEARNING</p>
+            <h1 class="native-word">...</h1>
+            <p class="translation">"..."</p>
+        </div>
+
+        <button class="audio-btn" id="playAudio">
+            <i class="fas fa-volume-up"></i>
+        </button>
+        <p style="margin-top: 15px; font-size: 0.8rem; color: #555;">Tap to hear pronunciation</p>
+
+        <div class="action-footer">
+            <a href="#" id="next-phrase" class="btn-continue">CONTINUE</a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Audio pronunciation button feedback
+        document.getElementById('playAudio').addEventListener('click', () => {
+            const btn = document.getElementById('playAudio');
+            btn.style.backgroundColor = "#1B998B"; 
+            setTimeout(() => btn.style.backgroundColor = "", 300);
+        });
+
+        // Function to play success sound and show overlay
+        // This is called by script.js when phrases are finished
+        window.showSuccessScreen = function() {
+            const overlay = document.getElementById('success-overlay');
+            overlay.style.display = 'flex';
+            
+            // Play success sound
+            const successAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); 
+            successAudio.volume = 0.5;
+            successAudio.play().catch(e => console.log("Audio play blocked until user interaction"));
+        };
+    </script>
+</body>
+</html>
