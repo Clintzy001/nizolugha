@@ -1,0 +1,76 @@
+{
+  "languages": [
+    {
+      "id": "nigeria_yoruba",
+      "name": "Yoruba",
+      "country": "Nigeria",
+      "flag": "🇳🇬",
+      "lessons": [
+        { "phrase": "Ẹ kú àárọ̀", "meaning": "Good morning", "tone": "High-Low-Low-High", "note": "Respect is vital; often said with a slight bow." },
+        { "phrase": "Ẹ ṣé", "meaning": "Thank you", "tone": "Mid-High", "note": "Used for elders or groups." },
+        { "phrase": "Báwo ni?", "meaning": "How are things?", "tone": "High-Low-Mid", "note": "Informal way to check on friends." },
+        { "phrase": "O dábọ̀", "meaning": "Goodbye", "tone": "Mid-High-Low", "note": "Literally means 'Until you return'." }
+      ]
+    },
+    {
+      "id": "nigeria_igbo",
+      "name": "Igbo",
+      "country": "Nigeria",
+      "flag": "🇳🇬",
+      "lessons": [
+        { "phrase": "Ị bọọla chi?", "meaning": "Good morning", "tone": "Rising-High", "note": "Literally: 'Has the day dawned for you?'" },
+        { "phrase": "Imela", "meaning": "Thank you", "tone": "Low-Mid-High", "note": "Very common expression of gratitude." },
+        { "phrase": "Kedu?", "meaning": "How are you?", "tone": "High-Low", "note": "Literally: 'How is it?'" },
+        { "phrase": "Ka ọdi", "meaning": "Goodbye", "tone": "Mid-Low", "note": "Used when leaving someone." }
+      ]
+    },
+    {
+      "id": "nigeria_hausa",
+      "name": "Hausa",
+      "country": "Nigeria",
+      "flag": "🇳🇬",
+      "lessons": [
+        { "phrase": "Ina kwana?", "meaning": "Good morning", "tone": "Low-High-High", "note": "Literally: 'How did you sleep?'" },
+        { "phrase": "Na gode", "meaning": "Thank you", "tone": "Mid-High-Low", "note": "A polite and essential phrase." },
+        { "phrase": "Yaya kake?", "meaning": "How are you? (to a male)", "tone": "High-Low", "note": "Swap 'kake' for 'kaki' when speaking to a female." },
+        { "phrase": "Sai an jima", "meaning": "Goodbye", "tone": "High-Mid-Low", "note": "Means 'Until later'." }
+      ]
+    },
+    {
+      "id": "kenya_swahili",
+      "name": "Swahili",
+      "country": "Kenya",
+      "flag": "🇰🇪",
+      "lessons": [
+        { "phrase": "Habari za asubuhi", "meaning": "Good morning", "note": "A formal way to start the day." },
+        { "phrase": "Asante sana", "meaning": "Thank you very much", "note": "Standard across East Africa." },
+        { "phrase": "Mambo!", "meaning": "What's up?", "note": "Very popular Kenyan slang (Sheng). Response is 'Poa'." },
+        { "phrase": "Safari njema", "meaning": "Safe journey", "note": "Commonly said when someone is traveling." }
+      ]
+    },
+    {
+      "id": "zambia_bemba",
+      "name": "Bemba",
+      "country": "Zambia",
+      "flag": "🇿🇲",
+      "lessons": [
+        { "phrase": "Mwashibukeni", "meaning": "Good morning", "note": "Said to people waking up." },
+        { "phrase": "Twalumba", "meaning": "Thank you", "note": "Formal gratitude." },
+        { "phrase": "Muli shani?", "meaning": "How are you?", "note": "The most common greeting in Zambia." },
+        { "phrase": "Shalenipo", "meaning": "Goodbye", "note": "Used by the person who is leaving." }
+      ]
+    },
+    {
+      "id": "zambia_nyanja",
+      "name": "Nyanja",
+      "country": "Zambia",
+      "flag": "🇿🇲",
+      "lessons": [
+        { "phrase": "Mwauka bwanji?", "meaning": "Good morning", "note": "Literally: 'How have you woken up?'" },
+        { "phrase": "Zikomo", "meaning": "Thank you / Excuse me", "note": "A multi-purpose polite word." },
+        { "phrase": "Muli bwanji?", "meaning": "How are you?", "note": "Standard greeting in Lusaka." },
+        { "phrase": "Tidzaonana", "meaning": "See you later", "note": "Informal and friendly." }
+      ]
+    }
+  ]
+}
