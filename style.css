@@ -1,0 +1,21 @@
+/* ... Your existing root and body variables ... */
+
+header {
+    margin-top: 20px;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.logo-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ... The rest of your card and nav CSS goes here ... */
