@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Nizo Lugha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .settings-list { margin-top: 20px; }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--card-bg);
+            margin-bottom: 2px;
+        }
+        .setting-item:first-child { border-radius: 20px 20px 0 0; }
+        .setting-item:last-child { border-radius: 0 0 20px 20px; }
+        
+        .toggle {
+            width: 40px;
+            height: 20px;
+            background: var(--nigeria-green);
+            border-radius: 20px;
+            position: relative;
+        }
+        .toggle::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header style="text-align: left;">
+            <a href="profile.html" style="color: white; text-decoration: none;"><i class="fas fa-arrow-left"></i> Back</a>
+            <h2 style="font-family: 'Montserrat'; margin-top: 20px;">Settings</h2>
+        </header>
+
+        <div class="settings-list">
+            <div class="setting-item">
+                <span>Daily Reminders</span>
+                <div class="toggle"></div>
+            </div>
+            <div class="setting-item">
+                <span>Dark Mode</span>
+                <div class="toggle"></div>
+            </div>
+            <div class="setting-item">
+                <span>Sound Effects</span>
+                <div class="toggle"></div>
+            </div>
+        </div>
+
+        <div class="settings-list" style="margin-top: 30px;">
+            <div class="setting-item">
+                <span>Change Email</span>
+                <i class="fas fa-chevron-right" style="color: #444;"></i>
+            </div>
+            <div class="setting-item" style="color: #ff4444;">
+                <span>Logout</span>
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
