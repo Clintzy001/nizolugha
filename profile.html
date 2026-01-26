@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Leaderboard - Nizo Lugha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .profile-container { padding: 20px; text-align: center; }
+        
+        /* Tab Menu Styling */
+        .tab-menu {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 30px;
+            margin: 20px 0 30px;
+            padding: 5px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            color: var(--muted-text);
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: var(--zambia-blue);
+            color: white;
+        }
+
+        /* Stats Styling */
+        .profile-header { padding: 20px 0; }
+        .profile-pic {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: var(--zambia-blue); margin: 0 auto 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; border: 4px solid var(--card-bg);
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-val { display: block; font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+        .stat-label { color: var(--muted-text); font-size: 0.8rem; }
+
+        /* Premium Card Styling */
+        .premium-card {
+            background: linear-gradient(135deg, #f1c40f, #e67e22);
+            border-radius: 20px; padding: 20px; margin: 0 0 20px;
+            color: white; text-align: left; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3);
+        }
+        .premium-info h3 { margin: 0; font-size: 1.2rem; }
+        .premium-info p { margin: 5px 0 0; font-size: 0.85rem; opacity: 0.9; }
+
+        /* Payment Modal Styling */
+        #payment-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none; justify-content: center; align-items: center; z-index: 3000;
+        }
+        .pay-box {
+            background: white; color: #333; padding: 30px; border-radius: 25px;
+            width: 85%; max-width: 400px; text-align: center;
+        }
+        .pay-method { display: flex; gap: 10px; margin: 20px 0; }
+        .pay-method button {
+            flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #ddd;
+            background: #f9f9f9; cursor: pointer; font-weight: bold;
+        }
+
+        /* Power-up Shop Styling */
+        .shop-section { margin-top: 30px; text-align: left; }
+        .powerup-card {
+            background: linear-gradient(135deg, #2c3e50, #000);
+            border-radius: 20px; padding: 15px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .powerup-info { display: flex; align-items: center; gap: 15px; }
+        .powerup-icon { width: 50px; height: 50px; background: #333; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .buy-btn { background: var(--kenya-orange); color: white; border: none; padding: 8px 15px; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .owned-tag { color: #8BC34A; font-size: 0.8rem; font-weight: bold; }
+
+        .challenge-box { background: var(--card-bg); border-radius: 20px; padding: 15px; margin-bottom: 25px; text-align: left; border-left: 4px solid var(--kenya-orange); }
+        .challenge-item { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+        .challenge-status.completed { color: #8BC34A; }
+        
+        #achievement-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+        .achievement-card { background: var(--card-bg); padding: 40px 20px; border-radius: 30px; text-align: center; max-width: 300px; border: 2px solid var(--zambia-blue); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .reset-btn { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 10px 20px; border-radius: 20px; margin-top: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body class="primary-dark">
+    
+    <div id="achievement-overlay">
+        <div class="achievement-card">
+            <i id="milestone-icon" class="fas fa-medal" style="font-size: 4rem; color: #FFD700; margin-bottom: 20px;"></i>
+            <h2 id="milestone-title">Goal Reached!</h2>
+            <p id="milestone-desc" style="color: var(--muted-text); margin-bottom: 25px;">You've earned 100 XP!</p>
+            <button onclick="closeMilestone()" class="btn-primary" style="padding: 12px 30px; border-radius: 20px;">Awesome!</button>
+        </div>
+    </div>
+
+    <div id="payment-overlay">
+        <div class="pay-box">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Paystack_logo.png" height="30" alt="Paystack" id="vendor-logo">
+            <h3 style="margin: 20px 0 10px;">Upgrade to Premium</h3>
+            <p style="color: #666; font-size: 0.9rem;">Access all languages & 500 Bonus XP for <b>₦2,500</b></p>
+            
+            <div class="pay-method">
+                <button onclick="processPayment('Paystack')">Paystack</button>
+                <button onclick="processPayment('Flutterwave')">Flutterwave</button>
+            </div>
+            <button onclick="document.getElementById('payment-overlay').style.display='none'" style="border:none; background:none; color:#999; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <div class="app-container profile-container">
+        
+        <div class="profile-header">
+            <div class="profile-pic"><i class="fas fa-user"></i></div>
+            <h2 style="margin: 0;">Lugha Learner</h2>
+            <p style="color: var(--muted-text); font-size: 0.9rem;">Joined January 2026</p>
+        </div>
+
+        <div class="tab-menu">
+            <div class="tab-btn active" id="tab-stats" onclick="switchTab('stats')">My Stats</div>
+            <div class="tab-btn" id="tab-leader" onclick="switchTab('leaderboard')">Leaderboard</div>
+        </div>
+
+        <div id="stats-view">
+            <div class="premium-card" id="premium-banner">
+                <div class="premium-info">
+                    <h3><i class="fas fa-crown"></i> Nizo Premium</h3>
+                    <p id="premium-status">Unlock exclusive African dialects</p>
+                </div>
+                <button class="buy-btn" style="background: white; color: #e67e22;" onclick="openPayment()">Upgrade</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-fire" style="color: #FF5722;"></i>
+                    <span id="user-streak" class="stat-val">0</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-bolt" style="color: #FFD700;"></i>
+                    <span id="user-xp" class="stat-val">0</span>
+                    <span class="stat-label">Total XP</span>
+                </div>
+            </div>
+
+            <div class="shop-section">
+                <h3 style="font-family: 'Montserrat'; font-size: 1.1rem; margin-bottom: 15px;">Shop Power-ups</h3>
+                <div class="powerup-card">
+                    <div class="powerup-info">
+                        <div class="powerup-icon" style="color: #00BCD4;"><i class="fas fa-snowflake"></i></div>
+                        <div>
+                            <h4 style="margin:0; font-size:0.9rem;">Streak Freeze</h4>
+                            <p style="margin:0; font-size:0.75rem; color:var(--muted-text);">Protect your streak for 1 day</p>
+                        </div>
+                    </div>
+                    <div id="freeze-container">
+                        <button class="buy-btn" onclick="buyItem('freeze', 100)">100 XP</button>
+                    </div>
+                </div>
+                <div class="powerup-card">
+                    <div class="powerup-info">
+                        <div class="powerup-icon" style="color: #FFD700;"><i class="fas fa-rocket"></i></div>
+                        <div>
+                            <h4 style="margin:0; font-size:0.9rem;">XP Booster</h4>
+                            <p style="margin:0; font-size:0.75rem; color:var(--muted-text);">Double XP for next lesson</p>
+                        </div>
+                    </div>
+                    <div id="boost-container">
+                        <button class="buy-btn" onclick="buyItem('boost', 50)">50 XP</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="challenge-box" style="margin-top:20px;">
+                <h3 style="margin: 0; font-size: 1.1rem; font-family: 'Montserrat';">Daily Challenges</h3>
+                <div class="challenge-item">
+                    <div class="challenge-info">
+                        <h4>Early Bird</h4>
+                        <p>Earn your first 15 XP today</p>
+                    </div>
+                    <div id="challenge-xp" class="challenge-status"><i class="fas fa-circle-notch"></i></div>
+                </div>
+            </div>
+
+            <button class="reset-btn" onclick="resetProgress()">
+                <i class="fas fa-trash-alt"></i> Reset Progress
+            </button>
+        </div>
+
+        <div id="leaderboard-view" class="leaderboard-list">
+            <div class="rank-item top-three">
+                <div class="rank-number">1</div>
+                <div class="rank-avatar" style="background: #FFD700; color: #000;"><i class="fas fa-crown"></i></div>
+                <div class="rank-info"><strong>Chidi_99</strong><br><small style="color: var(--muted-text);">Igbo Specialist</small></div>
+                <div class="rank-xp">1,250 XP</div>
+            </div>
+            <div class="rank-item" style="background: rgba(27, 153, 139, 0.1); border: 1px solid var(--nigeria-green);">
+                <div class="rank-number">14</div>
+                <div class="rank-avatar" style="background: var(--zambia-blue);">YOU</div>
+                <div class="rank-info"><strong>Lugha Learner</strong><br><small style="color: var(--muted-text);">Beginner</small></div>
+                <div id="leader-user-xp" class="rank-xp">0 XP</div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item active"><i class="fas fa-user"></i></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+        });
+
+        function loadStats() {
+            const stats = JSON.parse(localStorage.getItem('nizo_stats')) || { 
+                xp: 0, streak: 0, milestones: [], dailyChecked: false, isPremium: false,
+                inventory: { freeze: 0, boost: 0 } 
+            };
+            
+            document.getElementById('user-xp').innerText = stats.xp;
+            document.getElementById('user-streak').innerText = stats.streak;
+            document.getElementById('leader-user-xp').innerText = stats.xp + " XP";
+            
+            // Premium UI Update
+            if (stats.isPremium) {
+                const banner = document.getElementById('premium-banner');
+                if(banner) {
+                    banner.style.background = "linear-gradient(135deg, #2ecc71, #27ae60)";
+                    document.getElementById('premium-status').innerText = "Premium Active • All Access";
+                    banner.querySelector('button').style.display = 'none';
+                }
+            }
+
+            updateShopUI(stats);
+            updateChallenges(stats);
+            checkMilestones(stats);
+        }
+
+        function openPayment() {
+            document.getElementById('payment-overlay').style.display = 'flex';
+        }
+
+        function processPayment(provider) {
+            alert(`Connecting to ${provider} Secure Gateway...`);
+            setTimeout(() => {
+                let stats = JSON.parse(localStorage.getItem('nizo_stats')) || { xp: 0 };
+                stats.isPremium = true;
+                stats.xp += 500; 
+                localStorage.setItem('nizo_stats', JSON.stringify(stats));
+                
+                document.getElementById('payment-overlay').style.display = 'none';
+                showMilestone({
+                    title: "Welcome to Premium!",
+                    desc: "You've unlocked all courses and gained 500 XP bonus."
+                });
+                loadStats();
+            }, 2000);
+        }
+
+        function updateShopUI(stats) {
+            const freezeCont = document.getElementById('freeze-container');
+            const boostCont = document.getElementById('boost-container');
+            if (stats.inventory?.freeze > 0) freezeCont.innerHTML = '<span class="owned-tag"><i class="fas fa-check"></i> Active</span>';
+            if (stats.inventory?.boost > 0) boostCont.innerHTML = '<span class="owned-tag"><i class="fas fa-check"></i> Equipped</span>';
+        }
+
+        function buyItem(item, cost) {
+            let stats = JSON.parse(localStorage.getItem('nizo_stats'));
+            if (stats.xp >= cost) {
+                stats.xp -= cost;
+                if(!stats.inventory) stats.inventory = { freeze: 0, boost: 0 };
+                stats.inventory[item] += 1;
+                localStorage.setItem('nizo_stats', JSON.stringify(stats));
+                showMilestone({ title: "Purchase Successful!", desc: `Activated ${item}!` });
+                loadStats();
+            } else { alert("Not enough XP!"); }
+        }
+
+        function switchTab(tab) {
+            const statsView = document.getElementById('stats-view');
+            const leaderView = document.getElementById('leaderboard-view');
+            const btnStats = document.getElementById('tab-stats');
+            const btnLeader = document.getElementById('tab-leader');
+            if (tab === 'stats') {
+                statsView.style.display = 'block'; leaderView.style.display = 'none';
+                btnStats.classList.add('active'); btnLeader.classList.remove('active');
+            } else {
+                statsView.style.display = 'none'; leaderView.style.display = 'block';
+                btnStats.classList.remove('active'); btnLeader.classList.add('active');
+            }
+        }
+
+        function showMilestone(m) {
+            document.getElementById('milestone-title').innerText = m.title;
+            document.getElementById('milestone-desc').innerText = m.desc;
+            document.getElementById('achievement-overlay').style.display = 'flex';
+        }
+        function closeMilestone() { document.getElementById('achievement-overlay').style.display = 'none'; }
+        function resetProgress() { if (confirm("Reset everything?")) { localStorage.clear(); location.reload(); } }
+        
+        function updateChallenges(stats) {
+            if (stats.xp >= 15) {
+                const xpStatus = document.getElementById('challenge-xp');
+                if(xpStatus) { xpStatus.innerHTML = '<i class="fas fa-check-circle"></i>'; xpStatus.classList.add('completed'); }
+            }
+        }
+
+        function checkMilestones(stats) {
+            if (!stats.milestones) stats.milestones = [];
+            if (stats.xp >= 50 && !stats.milestones.includes('m1')) {
+                showMilestone({ title: "Getting Started!", desc: "You've earned 50 XP!" });
+                stats.milestones.push('m1');
+                localStorage.setItem('nizo_stats', JSON.stringify(stats));
+            }
+        }
+    </script>
+</body>
+</html>
