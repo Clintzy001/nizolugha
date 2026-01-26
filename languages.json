@@ -1,0 +1,44 @@
+{
+  "languages": [
+    {
+      "id": "kenya_swahili",
+      "name": "Swahili",
+      "country": "Kenya",
+      "lessons": [
+        {
+          "word": "Habari gani?",
+          "translation": "How are you?",
+          "audio": "assets/audio/sw_habari.mp3",
+          "culture_note": "Commonly used in Nairobi; the polite response is 'Njema'."
+        }
+      ]
+    },
+    {
+      "id": "nigeria_yoruba",
+      "name": "Yoruba",
+      "country": "Nigeria",
+      "lessons": [
+        {
+          "word": "Ẹ kú àárọ̀",
+          "translation": "Good morning",
+          "audio": "assets/audio/yo_morning.mp3",
+          "tone_guide": "High-Low-Low-High",
+          "culture_note": "Respect is key; younger people often bow or prostrate when saying this."
+        }
+      ]
+    },
+    {
+      "id": "zambia_bemba",
+      "name": "Bemba",
+      "country": "Zambia",
+      "lessons": [
+        {
+          "word": "Muli shani?",
+          "translation": "How are you?",
+          "audio": "assets/audio/zm_muli.mp3",
+          "culture_note": "A standard greeting in Lusaka and the Copperbelt."
+        }
+      ]
+    }
+  ]
+}
