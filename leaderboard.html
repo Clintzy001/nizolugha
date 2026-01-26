@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard | Nizo Lugha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .leaderboard-container { padding: 20px; }
+        .rank-list { margin-top: 20px; }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .rank-number { width: 40px; font-weight: bold; font-size: 1.2rem; }
+        .rank-name { flex-grow: 1; font-weight: 600; display: flex; align-items: center; }
+        .rank-xp { color: var(--kenya-orange); font-weight: bold; }
+        
+        /* League Badges */
+        .league-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: 10px;
+            letter-spacing: 0.5px;
+        }
+        .league-bronze { background: #CD7F32; color: white; }
+        .league-silver { background: #C0C0C0; color: #121212; }
+        .league-gold { background: #FFD700; color: #121212; }
+
+        /* Podium Ranking Colors */
+        .rank-item:nth-child(1) .rank-number { color: #FFD700; } 
+        .rank-item:nth-child(2) .rank-number { color: #C0C0C0; } 
+        .rank-item:nth-child(3) .rank-number { color: #CD7F32; } 
+        
+        .loading-spinner { text-align: center; padding: 50px; color: var(--muted-text); }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin: 0 15px;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body style="padding-bottom: 80px;">
+
+    <div class="app-container leaderboard-container">
+        <header style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: 'Montserrat';">Top Learners</h1>
+            <p class="tagline">Compete for the Gold League!</p>
+        </header>
+
+        <div id="leaderboard-list" class="rank-list">
+            <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading rankings...</div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i></a>
+        <a href="leaderboard.html" class="nav-item active"><i class="fas fa-trophy"></i></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i></a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function loadLeaderboard() {
+            const listEl = document.getElementById('leaderboard-list');
+
+            // 1. Fetch data including league and avatar
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name, xp, avatar_url, league')
+                .order('xp', { ascending: false })
+                .limit(20);
+
+            if (error) {
+                listEl.innerHTML = `<p style="color:#FF5722; text-align:center;">Failed to sync with the tribe. Try again.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = ''; 
+
+            data.forEach((user, index) => {
+                const item = document.createElement('div');
+                item.className = 'rank-item';
+                
+                // Use profile picture or a stylish letter-avatar fallback
+                const avatar = user.avatar_url ? user.avatar_url : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'A')}&background=random&color=fff`;
+                
+                // Determine league (ensuring default if null)
+                const userLeague = user.league || 'Bronze';
+
+                item.innerHTML = `
+                    <div class="rank-number">#${index + 1}</div>
+                    <img src="${avatar}" class="user-avatar" alt="User">
+                    <div class="rank-name">
+                        ${user.full_name || 'Anonymous'}
+                        <span class="league-badge league-${userLeague.toLowerCase()}">${userLeague}</span>
+                    </div>
+                    <div class="rank-xp">${user.xp} XP</div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        // --- NEW: AUTO-PROMOTION LOGIC ---
+        // This checks if the user deserves a league upgrade based on current XP
+        async function checkPromotion() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('xp, league')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) {
+                let newLeague = profile.league;
+                if (profile.xp >= 1000) newLeague = 'Gold';
+                else if (profile.xp >= 500) newLeague = 'Silver';
+
+                if (newLeague !== profile.league) {
+                    await supabase.from('profiles').update({ league: newLeague }).eq('id', user.id);
+                    console.log(`Congratulations! Promoted to ${newLeague} League.`);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboard();
+            checkPromotion();
+        });
+    </script>
+</body>
+</html>
