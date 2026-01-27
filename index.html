@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nizo Lugha | Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .tagline { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.85rem; color: var(--muted-text); margin-top: -10px; letter-spacing: 0.5px; opacity: 0.9; }
+        .splash-logo, .logo-container { display: flex; flex-direction: column; align-items: center; }
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
+        
+        @keyframes shake { 
+            0% { transform: translateX(0); } 
+            25% { transform: translateX(-5px); } 
+            50% { transform: translateX(5px); } 
+            75% { transform: translateX(-5px); } 
+            100% { transform: translateX(0); } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="splash-logo">
+            <svg width="250" height="60" viewBox="0 0 250 60" xmlns="http://www.w3.org/2000/svg">
+                <text x="10" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FFD700">N</text>
+                <text x="38" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#A020F0">i</text> 
+                <text x="50" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#0000FF">z</text> 
+                <text x="70" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FF5722">o</text>
+                <text x="105" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#8BC34A">L</text>
+                <text x="126" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FF5722">u</text>
+                <text x="146" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#A020F0">g</text> 
+                <text x="166" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FFD700">h</text>
+                <text x="184" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#8BC34A">a</text>
+            </svg>
+            <p class="tagline">Learn new Afro language</p>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo-container">
+                <svg width="250" height="60" viewBox="0 0 250 60" xmlns="http://www.w3.org/2000/svg">
+                    <text x="10" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FFD700">N</text>
+                    <text x="38" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#A020F0">i</text> 
+                    <text x="50" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#0000FF">z</text> 
+                    <text x="70" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FF5722">o</text>
+                    <text x="105" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#8BC34A">L</text>
+                    <text x="126" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FF5722">u</text>
+                    <text x="146" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#A020F0">g</text> 
+                    <text x="166" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#FFD700">h</text>
+                    <text x="184" y="45" font-family="Brush Script MT, cursive" font-size="34" font-weight="bold" fill="#8BC34A">a</text>
+                </svg>
+                <p class="tagline">Learn new Afro language</p>
+            </div>
+            <p id="personalized-welcome" class="welcome-text">Loading your progress...</p>
+        </header>
+
+        <div class="language-list">
+            <div class="section-group">
+                <p class="section-label">🇳🇬 Nigeria</p>
+                <a href="#" class="card" data-lang="nigeria_yoruba">
+                    <div class="icon-box bg-nigeria"><i class="fas fa-drum"></i></div>
+                    <div class="card-info"><h3>Yoruba</h3><p>Tones & Greetings</p></div>
+                </a>
+                <a href="#" class="card" data-lang="nigeria_igbo">
+                    <div class="icon-box bg-nigeria"><i class="fas fa-mask"></i></div>
+                    <div class="card-info"><h3>Igbo</h3><p>Conversational Basics</p></div>
+                </a>
+                <a href="#" class="card" data-lang="nigeria_hausa">
+                    <div class="icon-box bg-nigeria"><i class="fas fa-mosque"></i></div>
+                    <div class="card-info"><h3>Hausa</h3><p>Essential Phrases</p></div>
+                </a>
+            </div>
+
+            <div class="section-group">
+                <p class="section-label">🇰🇪 Kenya</p>
+                <a href="#" class="card" data-lang="kenya_swahili">
+                    <div class="icon-box bg-kenya"><i class="fas fa-mountain"></i></div>
+                    <div class="card-info"><h3>Swahili</h3><p>Beginner Course</p></div>
+                </a>
+            </div>
+
+            <div class="section-group">
+                <p class="section-label">🇿🇲 Zambia</p>
+                <a href="#" class="card" data-lang="zambia_bemba">
+                    <div class="icon-box bg-zambia"><i class="fas fa-water"></i></div>
+                    <div class="card-info"><h3>Bemba</h3><p>Daily Phrases</p></div>
+                </a>
+                <a href="#" class="card" data-lang="zambia_nyanja">
+                    <div class="icon-box bg-zambia"><i class="fas fa-sun"></i></div>
+                    <div class="card-info"><h3>Nyanja</h3><p>Common Greetings</p></div>
+                </a>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item active"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i></a>
+        </nav>
+    </div>
+
+    <div id="category-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:4000; justify-content:center; align-items:center;">
+        <div style="background:var(--card-bg); width:85%; max-width:400px; padding:30px; border-radius:30px; text-align:center; border: 1px solid rgba(255,255,255,0.1);">
+            <h3 id="selected-lang-name" style="margin-bottom:20px; color:white;">Select Category</h3>
+            <div class="category-list" style="display:grid; gap:15px;">
+                <button class="cat-btn" onclick="startLesson('basics')">
+                    <i class="fas fa-comment-dots" style="color:var(--zambia-blue);"></i> Basics
+                </button>
+                <button id="cat-market" class="cat-btn" onclick="checkLock('market', 100)">
+                    <i class="fas fa-shopping-basket" style="color:var(--kenya-orange);"></i> Market Talk
+                </button>
+                <button id="cat-travel" class="cat-btn" onclick="checkLock('travel', 250)">
+                    <i class="fas fa-map-marked-alt" style="color:var(--nigeria-green);"></i> Travel
+                </button>
+            </div>
+            <button onclick="closeCategoryModal()" style="margin-top:20px; background:none; border:none; color:var(--muted-text); cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // 1. SUPABASE INITIALIZATION
+        const supabaseUrl = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 2. GATEKEEPER
+        const userSessionCheck = JSON.parse(localStorage.getItem('nizo_user'));
+        if (!userSessionCheck) {
+            window.location.href = 'auth.html'; 
+        }
+
+        let pendingLangId = "";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Splash Screen Logic
+            const splash = document.getElementById('splash-screen');
+            setTimeout(() => {
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.style.display = 'none', 500);
+                }
+            }, 2000);
+
+            // Personalized Greeting
+            const welcomeText = document.getElementById('personalized-welcome');
+            if (userSessionCheck && userSessionCheck.name && welcomeText) {
+                const firstName = userSessionCheck.name.split(' ')[0];
+                const hour = new Date().getHours();
+                let greeting = hour < 12 ? "Ẹ kú àárọ̀" : (hour < 18 ? "Habari za mchana" : "Muli shani");
+                welcomeText.innerText = `${greeting}, ${firstName}!`;
+            }
+
+            // Card Click Listeners
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    pendingLangId = card.getAttribute('data-lang');
+                    document.getElementById('selected-lang-name').innerText = card.querySelector('h3').innerText;
+                    document.getElementById('category-overlay').style.display = 'flex';
+                });
+            });
+        });
+
+        function closeCategoryModal() { document.getElementById('category-overlay').style.display = 'none'; }
+        
+        function startLesson(category) {
+            if (pendingLangId) {
+                window.location.href = `lesson.html?lang=${pendingLangId}&cat=${category}`;
+            }
+        }
+
+        function checkLock(category, requiredXP) {
+            const stats = JSON.parse(localStorage.getItem('nizo_stats')) || { xp: 0, isPremium: false };
+            if (stats.xp < requiredXP && !stats.isPremium) {
+                const btn = document.getElementById(`cat-${category}`);
+                if (btn) {
+                    btn.style.animation = "shake 0.3s ease";
+                    setTimeout(() => btn.style.animation = "", 300);
+                }
+                alert(`Locked! You need ${requiredXP} XP or Nizo Premium to unlock this stage.`);
+            } else {
+                startLesson(category);
+            }
+        }
+    </script>
+</body>
+</html>
