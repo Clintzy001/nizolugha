@@ -1,0 +1,79 @@
+    <script src="script.js"></script>
+    <script>
+        // --- SUPABASE INITIALIZATION (COMMENTED OUT TO PREVENT ERRORS) ---
+        // const supabaseUrl = 'YOUR_SUPABASE_URL';
+        // const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        // const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let pendingLangId = "";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. SPLASH SCREEN LOGIC
+            // This will now run correctly because the script won't crash above
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 500);
+                }
+            }, 2000);
+
+            // 2. PERSONALIZED GREETING LOGIC
+            const userSession = JSON.parse(localStorage.getItem('nizo_user'));
+            const welcomeText = document.getElementById('personalized-welcome');
+            
+            if (userSession && userSession.name && welcomeText) {
+                const firstName = userSession.name.split(' ')[0];
+                const hour = new Date().getHours();
+                let greeting = "";
+                
+                if (hour < 12) greeting = `Ẹ kú àárọ̀, ${firstName}!`;
+                else if (hour < 18) greeting = `Habari za mchana, ${firstName}!`;
+                else greeting = `Muli shani, ${firstName}!`;
+                
+                welcomeText.innerText = greeting;
+            } else if (welcomeText) {
+                welcomeText.innerText = "Ready for a new lesson?";
+            }
+
+            // 3. CARD CLICK LISTENERS
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    pendingLangId = card.getAttribute('data-lang');
+                    const langName = card.querySelector('h3').innerText;
+                    document.getElementById('selected-lang-name').innerText = langName;
+                    document.getElementById('category-overlay').style.display = 'flex';
+                });
+            });
+        });
+
+        function closeCategoryModal() {
+            const overlay = document.getElementById('category-overlay');
+            if(overlay) overlay.style.display = 'none';
+        }
+
+        function startLesson(category) {
+            if (pendingLangId) {
+                window.location.href = `lesson.html?lang=${pendingLangId}&cat=${category}`;
+            }
+        }
+
+        function checkLock(category, requiredXP) {
+            const stats = JSON.parse(localStorage.getItem('nizo_stats')) || { xp: 0 };
+            
+            // Allow access if they have the XP OR if they are a Premium user
+            if (stats.xp < requiredXP && !stats.isPremium) {
+                const btn = document.getElementById(`cat-${category}`);
+                if (btn) {
+                    btn.style.animation = "shake 0.3s ease";
+                    setTimeout(() => btn.style.animation = "", 300);
+                }
+                alert(`Locked! You need ${requiredXP} XP or Nizo Premium to unlock this.`);
+            } else {
+                startLesson(category);
+            }
+        }
+    </script>
