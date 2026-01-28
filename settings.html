@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Sema</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-black: #121212;
+            --card-bg: #1e1e1e;
+            --muted-text: #b3b3b3;
+            --sema-orange: #ff7d21; 
+            --success-green: #2ecc71;
+        }
+
+        body { 
+            background-color: var(--bg-black); 
+            color: white; 
+            margin: 0; 
+            font-family: 'Open Sans', sans-serif; 
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header h2 {
+            font-family: 'Playfair Display', serif;
+            color: white;
+        }
+
+        .settings-list { margin-top: 20px; }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--card-bg);
+            margin-bottom: 2px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .setting-item:first-child { border-radius: 20px 20px 0 0; }
+        .setting-item:last-child { border-radius: 0 0 20px 20px; }
+        
+        .toggle {
+            width: 40px;
+            height: 22px;
+            background: var(--sema-orange);
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+        }
+        .toggle::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+        }
+
+        .logout-container {
+            margin-top: 40px;
+            padding: 0 10px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 16px;
+            border-radius: 50px;
+            border: 2px solid #ff4444;
+            background: transparent;
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 350px;
+            border-radius: 30px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: scale(0.9);
+            transition: 0.3s ease;
+        }
+
+        .modal-overlay.active { display: flex; }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-card h3 { margin-bottom: 10px; font-family: 'Playfair Display', serif; }
+        .modal-card p { color: var(--muted-text); font-size: 0.9rem; margin-bottom: 25px; }
+
+        .modal-buttons { display: flex; flex-direction: column; gap: 10px; }
+
+        .btn-confirm {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: white;
+            border: 1px solid #333;
+            padding: 14px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        /* --- Toast Notification --- */
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success-green);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show { bottom: 30px; }
+
+        .back-link {
+            color: var(--muted-text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header style="padding: 20px 0;">
+            <a href="profile.html" class="back-link">
+                <i class="fas fa-chevron-left"></i> Back to Profile
+            </a>
+            <h2 style="margin-top: 20px;">Settings</h2>
+        </header>
+
+        <div class="settings-list">
+            <div class="setting-item">
+                <span>Daily Reminders</span>
+                <div class="toggle"></div>
+            </div>
+            <div class="setting-item">
+                <span>Dark Mode</span>
+                <div class="toggle"></div>
+            </div>
+            <div class="setting-item">
+                <span>Sound Effects</span>
+                <div class="toggle"></div>
+            </div>
+        </div>
+
+        <div class="settings-list" style="margin-top: 30px;">
+            <div class="setting-item" style="border-radius: 20px;">
+                <span>Change Email</span>
+                <i class="fas fa-chevron-right" style="color: var(--muted-text);"></i>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <button class="btn-logout" onclick="showLogoutModal()">LOG OUT</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-card">
+            <h3>Logging Out?</h3>
+            <p>Are you sure you want to leave? You'll need to sign back in to continue learning.</p>
+            <div class="modal-buttons">
+                <button class="btn-confirm" id="confirmBtn" onclick="confirmLogout()">Yes, Log Out</button>
+                <button class="btn-cancel" onclick="hideLogoutModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="logoutToast">
+        <i class="fas fa-check-circle"></i> Logged out successfully
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const modal = document.getElementById('logoutModal');
+        const toast = document.getElementById('logoutToast');
+        const confirmBtn = document.getElementById('confirmBtn');
+
+        function showLogoutModal() {
+            modal.classList.add('active');
+        }
+
+        function hideLogoutModal() {
+            modal.classList.remove('active');
+        }
+
+        async function confirmLogout() {
+            // UI Feedback
+            confirmBtn.innerText = "SIGNING OUT...";
+            confirmBtn.disabled = true;
+
+            try {
+                // 1. Supabase Signout
+                await _supabase.auth.signOut();
+
+                // 2. Clear Local Storage
+                localStorage.removeItem('sema_user');
+                localStorage.removeItem('sema_stats');
+
+                // 3. Show Success Toast
+                hideLogoutModal();
+                toast.classList.add('show');
+
+                // 4. Delayed Redirect
+                setTimeout(() => {
+                    window.location.href = 'auth.html';
+                }, 1500);
+
+            } catch (err) {
+                alert("Error logging out: " + err.message);
+                confirmBtn.innerText = "Yes, Log Out";
+                confirmBtn.disabled = false;
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                hideLogoutModal();
+            }
+        }
+    </script>
+</body>
+</html>
