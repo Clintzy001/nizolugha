@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaking | Nizo Lugha</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script> 
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-black: #121212;
+            --accent-orange: #ff7d21;
+            --card-bg: #1e1e1e;
+            --success-green: #4CAF50;
+            --error-red: #ff4444;
+        }
+
+        body { background: var(--bg-black); color: white; font-family: 'Open Sans'; margin: 0; display: flex; justify-content: center; overflow: hidden; }
+        .app-container { width: 100%; max-width: 414px; padding: 20px; height: 100vh; display: flex; flex-direction: column; text-align: center; }
+        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+
+        .phrase-box {
+            background: var(--card-bg);
+            padding: 40px 20px;
+            border-radius: 25px;
+            border: 1px solid #333;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .native-phrase { font-family: 'Montserrat'; font-size: 2.2rem; color: var(--accent-orange); margin: 0 0 10px 0; }
+        .translation { color: #b3b3b3; font-size: 1.1rem; }
+
+        .play-btn {
+            background: rgba(255, 125, 33, 0.1);
+            border: 1px solid var(--accent-orange);
+            color: var(--accent-orange);
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            margin: 20px auto 0;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .play-btn:active { transform: scale(0.9); background: var(--accent-orange); color: white; }
+
+        .wave-container {
+            display: flex; justify-content: center; align-items: center;
+            gap: 5px; height: 80px; margin-bottom: 40px; opacity: 0;
+        }
+        .recording .wave-container { opacity: 1; }
+        .bar { width: 4px; background: var(--accent-orange); border-radius: 10px; height: 10px; }
+        .recording .bar { animation: dance 1.2s ease-in-out infinite; }
+        @keyframes dance { 0%, 100% { height: 10px; } 50% { height: 50px; } }
+
+        .mic-btn {
+            width: 90px; height: 90px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            border: 8px solid rgba(255, 125, 33, 0.2);
+            color: white; font-size: 2rem;
+            display: flex; justify-content: center; align-items: center;
+            margin: 0 auto; cursor: pointer;
+        }
+        .mic-btn.active { background: var(--error-red); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 68, 68, 0.7); } 100% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); } }
+        
+        #transcript { margin-top: 15px; font-style: italic; color: #888; min-height: 20px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <a href="index.html" style="color:white; font-size:1.5rem;"><i class="fas fa-times"></i></a>
+            <h3 style="margin:0; font-family:'Montserrat'">Speaking</h3>
+            <div id="xp-badge" style="color:var(--accent-orange); font-weight:bold;">+15 XP</div>
+        </header>
+
+        <div class="phrase-box" id="phrase-display">
+            <h1 class="native-phrase" id="target-text">...</h1>
+            <p class="translation" id="translation-text">Loading practice...</p>
+            
+            <button class="play-btn" onclick="playNativeAudio()" title="Listen to pronunciation">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+
+        <div class="wave-container" id="wave-box">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+
+        <div class="mic-btn" id="mic-btn" onclick="handleMic()">
+            <i class="fas fa-microphone"></i>
+        </div>
+        
+        <p id="transcript"></p>
+        <p id="status" style="margin-top:10px; color:var(--accent-orange); font-weight:600;">Tap to start</p>
+    </div>
+
+    <script>
+        let recognition;
+        let isRecording = false;
+        let currentLesson = null;
+        let allPhrases = []; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const lang = urlParams.get('lang') || 'nigeria_yoruba';
+        const cat = urlParams.get('cat') || 'basics';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initSpeakingLesson();
+            setupRecognition();
+        });
+
+        async function initSpeakingLesson() {
+            try {
+                // 1. Fetch from language.json
+                const response = await fetch('language.json');
+                const jsonData = await response.json();
+                
+                // Find language and filter by category
+                const languageData = jsonData.languages.find(l => l.id === lang);
+                
+                if (languageData) {
+                    allPhrases = languageData.lessons.filter(p => p.type === cat);
+                    
+                    if (allPhrases.length > 0) {
+                        // Pick a random phrase
+                        const randomIndex = Math.floor(Math.random() * allPhrases.length);
+                        const selected = allPhrases[randomIndex];
+                        
+                        currentLesson = {
+                            answer_text: selected.phrase,
+                            prompt_text: selected.meaning,
+                            id: `${lang}_${cat}_${randomIndex}`
+                        };
+                        
+                        localStorage.setItem(`cache_speak_${lang}_${cat}`, JSON.stringify(currentLesson));
+                    }
+                }
+            } catch (e) {
+                console.warn("JSON fetch failed, checking cache...");
+                currentLesson = JSON.parse(localStorage.getItem(`cache_speak_${lang}_${cat}`));
+            }
+
+            if (!currentLesson) {
+                currentLesson = { answer_text: "Báwo ni", prompt_text: "How are you?", id: "fallback" };
+            }
+            
+            renderLesson();
+        }
+
+        function renderLesson() {
+            document.getElementById('target-text').innerText = currentLesson.answer_text;
+            document.getElementById('translation-text').innerText = `"${currentLesson.prompt_text}"`;
+        }
+
+        function playNativeAudio() {
+            if (!currentLesson) return;
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = currentLesson.answer_text;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function setupRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                document.getElementById('status').innerText = "Speech not supported in this browser.";
+                return;
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const result = event.results[0][0].transcript;
+                document.getElementById('transcript').innerText = `Heard: "${result}"`;
+                checkAnswer(result);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech Error:", event.error);
+                stopRecordingUI();
+            };
+
+            recognition.onend = () => { stopRecordingUI(); };
+        }
+
+        function handleMic() {
+            if (!isRecording) {
+                startRecordingUI();
+                recognition.start();
+            } else {
+                recognition.stop();
+            }
+        }
+
+        function startRecordingUI() {
+            isRecording = true;
+            document.body.classList.add('recording');
+            document.getElementById('mic-btn').classList.add('active');
+            document.getElementById('status').innerText = "Listening...";
+        }
+
+        function stopRecordingUI() {
+            isRecording = false;
+            document.body.classList.remove('recording');
+            document.getElementById('mic-btn').classList.remove('active');
+        }
+
+        async function checkAnswer(spokenText) {
+            // Strip punctuation and accents for accurate matching
+            const target = currentLesson.answer_text.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+                .replace(/[?.,!]/g, "").trim();
+
+            const cleanedSpoken = spokenText.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .trim();
+
+            if (cleanedSpoken.includes(target) || target.includes(cleanedSpoken)) {
+                document.getElementById('status').style.color = "var(--success-green)";
+                document.getElementById('status').innerText = "Perfect! +15 XP Earned";
+                
+                let stats = JSON.parse(localStorage.getItem('nizo_stats')) || { xp: 0 };
+                stats.xp += 15;
+                localStorage.setItem('nizo_stats', JSON.stringify(stats));
+
+                // Cloud sync if available
+                if (window.completeSession) {
+                    await window.completeSession(currentLesson.id, true, 15);
+                }
+            } else {
+                document.getElementById('status').style.color = "var(--error-red)";
+                document.getElementById('status').innerText = "Not quite. Try again!";
+            }
+        }
+    </script>
+</body>
+</html>
