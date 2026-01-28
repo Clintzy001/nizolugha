@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz | Nizo Lugha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-black: #121212;
+            --card-bg: #1e1e1e;
+            --accent-orange: #ff7d21;
+            --accent-green: #4CAF50;
+            --accent-red: #ff4444;
+            --muted-text: #b3b3b3;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: white;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 414px;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header & Progress */
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+        }
+
+        .heart-container { color: var(--accent-red); font-size: 1.2rem; display: flex; gap: 5px; }
+        .streak-container { color: var(--accent-orange); font-weight: bold; display: flex; align-items: center; gap: 8px; opacity: 0; transition: 0.3s; }
+        .streak-active { opacity: 1; }
+        
+        .fa-fire.ignite { 
+            animation: flicker 0.5s infinite alternate; 
+            text-shadow: 0 0 10px var(--accent-orange); 
+        }
+
+        .close-btn { color: white; text-decoration: none; font-size: 1.5rem; }
+
+        .progress-track {
+            flex-grow: 1;
+            height: 12px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-orange);
+            transition: width 0.4s ease;
+        }
+
+        /* Quiz Card Area */
+        .quiz-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: var(--card-bg);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 18px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-btn:active { transform: scale(0.98); }
+        
+        /* State Classes */
+        .correct { background: var(--accent-green) !important; border-color: var(--accent-green) !important; }
+        .incorrect { background: var(--accent-red) !important; border-color: var(--accent-red) !important; animation: shake 0.3s; }
+
+        /* Results Screen */
+        #results-screen {
+            display: none;
+            text-align: center;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .xp-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid var(--accent-orange);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .btn-continue {
+            background: var(--accent-orange);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 30px;
+            cursor: pointer;
+            width: 80%;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        @keyframes flicker {
+            from { transform: scale(1); opacity: 0.8; }
+            to { transform: scale(1.2); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="top-bar">
+                <a href="index.html" class="close-btn"><i class="fas fa-times"></i></a>
+                <div class="progress-track">
+                    <div id="progress-fill"></div>
+                </div>
+            </div>
+            <div class="stats-bar">
+                <div class="streak-container" id="streak-box">
+                    <i class="fas fa-fire" id="streak-icon"></i> <span id="streak-count">0</span>
+                </div>
+                <div class="heart-container" id="heart-box">
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        </header>
+
+        <div id="quiz-screen" class="quiz-body">
+            <p class="question-text" id="question-label">Loading question...</p>
+            <div class="options-grid" id="options-container"></div>
+        </div>
+
+        <div id="results-screen">
+            <i id="result-icon" class="fas fa-trophy" style="font-size: 4rem; color: #FFD700; margin-bottom: 20px;"></i>
+            <h1 id="result-title" style="font-family: 'Montserrat';">Lesson Complete!</h1>
+            <div class="xp-circle">
+                <span style="font-size: 1.5rem;" id="final-xp">+0</span>
+                <span style="font-size: 0.8rem; color: var(--muted-text);">XP EARNED</span>
+            </div>
+            <p id="result-msg" style="color: var(--muted-text);">Great job! You are getting better at this.</p>
+            <button class="btn-continue" onclick="window.location.href='index.html'">CONTINUE</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: "How do you say 'Hello' in Yoruba?", options: ["Báwo", "Pèlẹ́ o", "Ẹ kú àárọ̀", "O dà bọ̀"], correct: 1 },
+            { question: "What is the Swahili word for 'Teacher'?", options: ["Mwanafunzi", "Shule", "Mwalimu", "Kitabu"], correct: 2 },
+            { question: "In Igbo, what does 'Nnọọ' mean?", options: ["Goodbye", "Welcome", "Thank you", "Sorry"], correct: 1 },
+            { question: "Which of these means 'Water' in Hausa?", options: ["Abinci", "Gida", "Rua", "Zaki"], correct: 2 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let lives = 3;
+        let currentStreak = 0;
+        let totalXp = 0;
+
+        const questionLabel = document.getElementById('question-label');
+        const optionsContainer = document.getElementById('options-container');
+        const progressFill = document.getElementById('progress-fill');
+        const heartBox = document.getElementById('heart-box');
+        const streakBox = document.getElementById('streak-box');
+        const streakCount = document.getElementById('streak-count');
+        const streakIcon = document.getElementById('streak-icon');
+
+        function loadQuestion() {
+            if (lives <= 0) return;
+            
+            const q = quizData[currentQuestionIndex];
+            questionLabel.innerText = q.question;
+            optionsContainer.innerHTML = '';
+
+            const progress = (currentQuestionIndex / quizData.length) * 100;
+            progressFill.style.width = progress + '%';
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>${opt}</span><i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.3;"></i>`;
+                btn.onclick = () => handleAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex, btn) {
+            const correctIndex = quizData[currentQuestionIndex].correct;
+            const allButtons = document.querySelectorAll('.option-btn');
+            allButtons.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selectedIndex === correctIndex) {
+                btn.classList.add('correct');
+                totalXp += 15;
+                currentStreak++;
+                updateStreakUI();
+            } else {
+                btn.classList.add('incorrect');
+                allButtons[correctIndex].classList.add('correct');
+                lives--;
+                currentStreak = 0;
+                updateLivesUI();
+                updateStreakUI();
+                
+                if (lives <= 0) {
+                    setTimeout(() => showResults(true), 1000);
+                    return;
+                }
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    loadQuestion();
+                } else {
+                    showResults(false);
+                }
+            }, 1500);
+        }
+
+        function updateLivesUI() {
+            const hearts = heartBox.querySelectorAll('i');
+            // We target hearts[lives] because if lives is 2, the 3rd heart (index 2) should fade
+            if (hearts[lives]) {
+                hearts[lives].style.opacity = '0.2';
+                hearts[lives].classList.remove('fas');
+                hearts[lives].classList.add('far');
+            }
+        }
+
+        function updateStreakUI() {
+            if (currentStreak >= 2) {
+                streakBox.classList.add('streak-active');
+                streakCount.innerText = currentStreak;
+                if (currentStreak >= 3) streakIcon.classList.add('ignite');
+            } else {
+                streakBox.classList.remove('streak-active');
+                streakIcon.classList.remove('ignite');
+            }
+        }
+
+        function showResults(isGameOver) {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'flex';
+            
+            if (isGameOver) {
+                document.getElementById('result-icon').className = 'fas fa-heart-broken';
+                document.getElementById('result-icon').style.color = 'var(--accent-red)';
+                document.getElementById('result-title').innerText = "Out of Lives!";
+                document.getElementById('result-msg').innerText = "Don't give up! Try again to master these words.";
+                document.getElementById('final-xp').innerText = `+0`;
+            } else {
+                progressFill.style.width = '100%';
+                document.getElementById('final-xp').innerText = `+${totalXp}`;
+                saveStats(totalXp);
+            }
+        }
+
+        function saveStats(xp) {
+            let stats = JSON.parse(localStorage.getItem('nizo_stats')) || { xp: 0 };
+            stats.xp += xp;
+            localStorage.setItem('nizo_stats', JSON.stringify(stats));
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
