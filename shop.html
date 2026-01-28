@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soko (Market) | Nizo Lugha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --brand-orange: #FF8C00; 
+            --brand-black: #121212;
+            --card-gray: #1E1E1E;
+            --text-muted: #A0A0A0;
+        }
+        
+        body { 
+            background: var(--brand-black); 
+            color: white; 
+            font-family: 'Open Sans', sans-serif; 
+            margin: 0; 
+        }
+
+        /* Clean, flat header without curves */
+        .shop-header {
+            background: var(--card-gray);
+            padding: 30px 20px;
+            border-bottom: 2px solid var(--brand-orange);
+            text-align: center;
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+        }
+
+        .shop-header h2 {
+            font-family: 'Montserrat'; 
+            margin: 0; 
+            letter-spacing: 2px;
+            font-size: 1.8rem;
+        }
+
+        .shop-subtitle {
+            color: var(--brand-orange);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            display: block;
+            margin-top: -5px;
+            font-weight: bold;
+        }
+
+        .balance-card {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 140, 0, 0.1);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--brand-orange);
+            margin-top: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .item-grid {
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 15px;
+            padding: 20px; 
+            padding-bottom: 120px;
+        }
+
+        .section-title {
+            text-align: left;
+            margin: 20px 0 10px 10px;
+            font-size: 0.85rem;
+            color: var(--brand-orange);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .shop-item {
+            background: var(--card-gray); 
+            border-radius: 15px;
+            padding: 20px; 
+            display: flex; 
+            align-items: center;
+            border: 1px solid #333; 
+            transition: transform 0.2s;
+        }
+
+        .shop-item:active { transform: scale(0.98); }
+
+        .item-icon {
+            width: 50px; height: 50px; 
+            background: #2a2a2a;
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center;
+            justify-content: center; 
+            font-size: 1.3rem; 
+            margin-right: 15px;
+            color: var(--brand-orange);
+        }
+
+        .item-info { flex-grow: 1; text-align: left; }
+        .item-info h4 { margin: 0; font-family: 'Montserrat'; font-size: 1.1rem; }
+        .item-info p { margin: 5px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+        
+        .buy-btn {
+            background: var(--brand-orange); 
+            color: black; 
+            border: none;
+            padding: 10px 15px; 
+            border-radius: 10px; 
+            font-weight: 800;
+            cursor: pointer; 
+            min-width: 85px;
+        }
+
+        .buy-btn:disabled { 
+            background: #444; 
+            color: #888; 
+        }
+
+        .active-timer {
+            font-size: 0.75rem; 
+            color: #ff4444; 
+            font-weight: bold;
+            margin-top: 5px; 
+            display: none;
+        }
+
+        .tab-bar {
+            position: fixed; bottom: 0; width: 100%; max-width: 414px;
+            background: #181818; display: flex; justify-content: space-around;
+            padding: 18px 0; border-top: 1px solid #333; 
+            left: 50%; transform: translateX(-50%);
+        }
+
+        .nav-icon { color: white; opacity: 0.5; text-decoration: none; font-size: 1.3rem; }
+        .nav-icon.active { opacity: 1; color: var(--brand-orange); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="shop-header">
+            <h2>SOKO</h2>
+            <span class="shop-subtitle">Market</span>
+            <div class="balance-card">
+                <i class="fas fa-coins" style="margin-right: 10px;"></i>
+                <span id="cowrie-balance">0</span>
+            </div>
+        </header>
+
+        <div class="item-grid">
+            <h3 class="section-title">Boosters</h3>
+            
+            <div class="shop-item">
+                <div class="item-icon"><i class="fas fa-bolt"></i></div>
+                <div class="item-info">
+                    <h4>XP Double</h4>
+                    <p>2x XP for 15 mins</p>
+                    <div id="xp-timer" class="active-timer">Active: 15:00</div>
+                </div>
+                <button class="buy-btn" id="btn-xp_boost" onclick="buyItem('xp_boost', 50)">50 <i class="fas fa-coins"></i></button>
+            </div>
+
+            <div class="shop-item">
+                <div class="item-icon"><i class="fas fa-snowflake"></i></div>
+                <div class="item-info">
+                    <h4>Streak Freeze</h4>
+                    <p>Owned: <span id="freeze-count">0</span></p>
+                </div>
+                <button class="buy-btn" onclick="buyItem('streak_freeze', 100)">100 <i class="fas fa-coins"></i></button>
+            </div>
+
+            <h3 class="section-title">Purchase Cowries</h3>
+
+            <div class="shop-item">
+                <div class="item-icon"><i class="fas fa-box"></i></div>
+                <div class="item-info">
+                    <h4>Small Pouch</h4>
+                    <p>500 Cowries</p>
+                </div>
+                <button class="buy-btn" onclick="topUp(500)">$0.99</button>
+            </div>
+
+            <div class="shop-item">
+                <div class="item-icon"><i class="fas fa-gem"></i></div>
+                <div class="item-info">
+                    <h4>Grand Chest</h4>
+                    <p>2500 Cowries</p>
+                </div>
+                <button class="buy-btn" onclick="topUp(2500)">$3.99</button>
+            </div>
+        </div>
+
+        <nav class="tab-bar">
+            <a href="index.html" class="nav-icon"><i class="fas fa-home"></i></a>
+            <a href="leaderboard.html" class="nav-icon"><i class="fas fa-trophy"></i></a>
+            <a href="shop.html" class="nav-icon active"><i class="fas fa-shopping-basket"></i></a>
+            <a href="profile.html" class="nav-icon"><i class="fas fa-user"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        let stats = JSON.parse(localStorage.getItem('nizo_stats')) || { 
+            xp: 0, 
+            cowries: 100, 
+            inventory: { streak_freeze: 0 },
+            active_boosts: { xp_double: null }
+        };
+
+        function updateDisplay() {
+            document.getElementById('cowrie-balance').innerText = stats.cowries;
+            document.getElementById('freeze-count').innerText = stats.inventory.streak_freeze || 0;
+            checkBoosts();
+            localStorage.setItem('nizo_stats', JSON.stringify(stats));
+        }
+
+        function checkBoosts() {
+            const now = Date.now();
+            const xpExpiry = stats.active_boosts.xp_double;
+            const timerEl = document.getElementById('xp-timer');
+            const buyBtn = document.getElementById('btn-xp_boost');
+
+            if (xpExpiry && now < xpExpiry) {
+                timerEl.style.display = 'inline-block';
+                buyBtn.disabled = true;
+                buyBtn.innerText = "ACTIVE";
+                const timeLeft = Math.ceil((xpExpiry - now) / 1000);
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerEl.innerText = `⏱ ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                setTimeout(checkBoosts, 1000);
+            } else {
+                timerEl.style.display = 'none';
+                buyBtn.disabled = false;
+                buyBtn.innerHTML = `50 <i class="fas fa-coins"></i>`;
+                stats.active_boosts.xp_double = null;
+            }
+        }
+
+        function buyItem(id, price) {
+            if (stats.cowries >= price) {
+                stats.cowries -= price;
+                if (id === 'xp_boost') {
+                    stats.active_boosts.xp_double = Date.now() + (15 * 60 * 1000);
+                } else if (id === 'streak_freeze') {
+                    stats.inventory.streak_freeze = (stats.inventory.streak_freeze || 0) + 1;
+                }
+                updateDisplay();
+            } else {
+                alert("You don't have enough Cowries!");
+            }
+        }
+
+        function topUp(amount) {
+            alert("Redirecting to payment...");
+            stats.cowries += amount;
+            updateDisplay();
+        }
+
+        document.addEventListener('DOMContentLoaded', updateDisplay);
+    </script>
+</body>
+</html>
