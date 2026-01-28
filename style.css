@@ -1,0 +1,209 @@
+/* Custom Variables for Nizo Lugha & AfriLingo Blend */
+:root {
+    --primary-dark: #121212;
+    --card-bg: #1e1e1e;
+    --accent-orange: #ff7d21; /* AfriLingo Orange */
+    --kenya-orange: #E94E77;
+    --nigeria-green: #1B998B;
+    --zambia-blue: #0A84FF;
+    --text-white: #FFFFFF;
+    --nav-bg: #111111;
+    --muted-text: #b3b3b3;
+}
+
+/* Global Reset */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Open Sans', sans-serif;
+    background-color: var(--primary-dark);
+    color: var(--text-white);
+    display: flex;
+    justify-content: center;
+}
+
+/* App Layout Container */
+.app-container {
+    width: 100%;
+    max-width: 414px; /* Optimized Mobile Width */
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    padding-bottom: 100px;
+}
+
+/* Splash Screen Styling */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.8s ease, visibility 0.8s;
+}
+
+/* Header & Logo */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.welcome-text {
+    font-size: 0.9rem;
+    color: var(--accent-orange);
+    margin-top: 5px;
+}
+
+/* Language Selection - 2x2 Grid Style */
+.grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.lang-card {
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 15px;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+
+.lang-card:active {
+    transform: scale(0.97);
+}
+
+/* Continue Learning / Resume Card */
+.resume-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.btn-orange {
+    background-color: var(--accent-orange);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 125, 33, 0.3);
+}
+
+/* Progress Bar */
+.progress-bar {
+    background: #333;
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.progress {
+    background: var(--accent-orange);
+    height: 100%;
+    border-radius: 3px;
+}
+
+/* Tool Grid (Quizzes, Speaking, etc.) */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.tool-card {
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 15px 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-white);
+}
+
+.tool-card i {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--accent-orange);
+}
+
+/* Country Themed Icon Boxes (From original Nizo) */
+.icon-box {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+.bg-kenya { background: linear-gradient(135deg, #FF9966, var(--kenya-orange)); }
+.bg-nigeria { background: linear-gradient(135deg, #2E7D32, var(--nigeria-green)); }
+.bg-zambia { background: linear-gradient(135deg, #0052D4, var(--zambia-blue)); }
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 414px;
+    background: var(--nav-bg);
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #333;
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    color: #555;
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.nav-item.active {
+    color: var(--accent-orange);
+}
+
+/* Animations & Modals */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+#category-overlay {
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
