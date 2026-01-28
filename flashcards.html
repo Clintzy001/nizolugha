@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards | Nizo Lugha</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-black: #121212;
+            --card-bg: #1e1e1e;
+            --accent-orange: #ff7d21;
+            --muted-text: #b3b3b3;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: white;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 414px;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .back-btn { color: white; text-decoration: none; font-size: 1.5rem; }
+
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 400px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flashcard-container.is-flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 30px;
+            background: var(--card-bg);
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 20px;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+        }
+
+        .word-text { font-family: 'Montserrat'; font-size: 2.2rem; margin-bottom: 10px; word-break: break-word; }
+        .hint-text { color: var(--accent-orange); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 50px;
+        }
+
+        .control-btn {
+            background: #252525;
+            border: 1px solid #444;
+            color: white;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .control-btn:active { transform: scale(0.9); }
+        .mastered { color: #4CAF50; border-color: #4CAF50; }
+        .skip { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <a href="index.html" class="back-btn"><i class="fas fa-times"></i></a>
+            <h3 id="language-title" style="margin:0; font-family:'Montserrat'">Study</h3>
+            <div id="progress-counter" style="color:var(--muted-text); font-weight:600">0/0</div>
+        </header>
+
+        <div class="flashcard-container" id="card" onclick="this.classList.toggle('is-flipped')">
+            <div class="flashcard-inner">
+                <div class="card-face card-front">
+                    <p class="hint-text" id="front-lang">Loading...</p>
+                    <h1 class="word-text" id="front-word">---</h1>
+                    <i class="fas fa-volume-up" style="color:var(--muted-text)"></i>
+                </div>
+                <div class="card-face card-back">
+                    <p class="hint-text">English</p>
+                    <h1 class="word-text" id="back-word">---</h1>
+                    <p id="word-desc" style="color:var(--muted-text); font-size: 0.9rem;"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-btn skip" onclick="nextCard()"><i class="fas fa-redo"></i></div>
+            <div class="control-btn mastered" onclick="markMastered()"><i class="fas fa-check"></i></div>
+        </div>
+    </div>
+
+    <script>
+        // 30 Multilingual Flashcards
+        const staticFlashcards = [
+            { lang: "Yoruba", word: "Ẹ kú àárọ̀", eng: "Good morning", desc: "Greeting used in the morning" },
+            { lang: "Yoruba", word: "Oòrùn", eng: "Sun", desc: "The star at the center of our system" },
+            { lang: "Yoruba", word: "Omi", eng: "Water", desc: "Essential for life" },
+            { lang: "Yoruba", word: "Abẹ́rẹ́", eng: "Needle", desc: "Used for sewing" },
+            { lang: "Yoruba", word: "Ìfẹ́", eng: "Love", desc: "A strong feeling of affection" },
+            
+            { lang: "Igbo", word: "Ụtụtụ ọma", eng: "Good morning", desc: "Morning greeting" },
+            { lang: "Igbo", word: "Nne", eng: "Mother", desc: "Female parent" },
+            { lang: "Igbo", word: "Nna", eng: "Father", desc: "Male parent" },
+            { lang: "Igbo", word: "Biko", eng: "Please", desc: "Used to be polite" },
+            { lang: "Igbo", word: "Ịmẹla", eng: "Thank you", desc: "Expressing gratitude" },
+
+            { lang: "Hausa", word: "Sannu", eng: "Hello / Well done", desc: "General greeting" },
+            { lang: "Hausa", word: "Ina kwana", eng: "Good morning", desc: "How did you sleep?" },
+            { lang: "Hausa", word: "Ruwa", eng: "Water", desc: "Standard word for water" },
+            { lang: "Hausa", word: "Gida", eng: "House", desc: "A place to live" },
+            { lang: "Hausa", word: "Abinci", eng: "Food", desc: "Something to eat" },
+
+            { lang: "Swahili", word: "Habari", eng: "News / Hello", desc: "Common greeting" },
+            { lang: "Swahili", word: "Asante", eng: "Thank you", desc: "Expressing thanks" },
+            { lang: "Swahili", word: "Rafiki", eng: "Friend", desc: "A person you know well" },
+            { lang: "Swahili", word: "Chakula", eng: "Food", desc: "A meal" },
+            { lang: "Swahili", word: "Lala salama", eng: "Sleep peacefully", desc: "Goodnight" },
+
+            { lang: "Bemba", word: "Muli shani", eng: "How are you", desc: "Standard greeting" },
+            { lang: "Bemba", word: "Suntwe", eng: "Hyena", desc: "A common African animal" },
+            { lang: "Bemba", word: "Mukwai", eng: "Sir/Madam", desc: "Respectful title" },
+            { lang: "Bemba", word: "Natotela", eng: "Thank you", desc: "Gratitude" },
+            { lang: "Bemba", word: "Nshima", eng: "Maize porridge", desc: "Staple food" },
+
+            { lang: "Nyanja", word: "Muli bwanji", eng: "How are you", desc: "Greeting" },
+            { lang: "Nyanja", word: "Zikomo", eng: "Thank you", desc: "Standard thanks" },
+            { lang: "Nyanja", word: "Madzi", eng: "Water", desc: "Liquid for drinking" },
+            { lang: "Nyanja", word: "Banja", eng: "Family", desc: "Household members" },
+            { lang: "Nyanja", word: "Mwana", eng: "Child", desc: "A young human" }
+        ];
+
+        let currentIndex = 0;
+        let activeCards = [...staticFlashcards];
+
+        function displayCard() {
+            const cardElement = document.getElementById('card');
+            cardElement.classList.remove('is-flipped');
+            
+            setTimeout(() => {
+                const c = activeCards[currentIndex];
+                document.getElementById('front-lang').innerText = c.lang;
+                document.getElementById('front-word').innerText = c.word;
+                document.getElementById('back-word').innerText = c.eng;
+                document.getElementById('word-desc').innerText = c.desc;
+                document.getElementById('progress-counter').innerText = `${currentIndex + 1}/${activeCards.length}`;
+            }, 150);
+        }
+
+        async function markMastered() {
+            const currentCard = activeCards[currentIndex];
+            // Use Supabase-config global function
+            if(window.completeSession) {
+                // Here 'word' acts as a temporary ID. In DB, use currentCard.id
+                await window.completeSession(currentCard.word, true, 5); 
+            }
+            nextCard();
+        }
+
+        function nextCard() {
+            currentIndex++;
+            if (currentIndex >= activeCards.length) {
+                alert("Session Complete! +5 XP for each mastered card.");
+                window.location.href = 'index.html';
+                return;
+            }
+            displayCard();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', displayCard);
+    </script>
+</body>
+</html>
