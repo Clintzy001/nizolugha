@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sema | Home</title>
+    
+    <script>
+        (function() {
+            const userSession = JSON.parse(localStorage.getItem('sema_user'));
+            if (!userSession) {
+                window.location.href = 'auth.html';
+            }
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-black: #121212;
+            --card-bg: #1e1e1e;
+            --accent-orange: #ff7d21;
+            --accent-blue: #2980B9;
+            --accent-green: #8BC34A;
+            --accent-purple: #8E44AD;
+            --muted-text: #b3b3b3;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: white;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden; 
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 414px;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* Splash Screen - Logo at Center */
+        #splash-screen { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #121212; 
+            z-index: 9999; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transition: opacity 0.5s ease; 
+        }
+
+        /* Pulsing animation for the loading logo */
+        .pulse {
+            animation: logoPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes logoPulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        /* Header Layout - Logo at Top Right */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .header-right-logo {
+            margin-top: -5px;
+        }
+
+        .welcome-text { font-size: 0.9rem; color: var(--accent-orange); font-weight: 600; }
+
+        .header-stats { display: flex; gap: 8px; margin-top: 5px; }
+        .stat-pill {
+            background: #252525;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            border: 1px solid #333;
+        }
+        .stat-pill i { color: var(--accent-orange); margin-right: 4px; }
+
+        .sema-text-style {
+            font-family: 'Brush Script MT', 'Dancing Script', cursive;
+            font-weight: bold;
+        }
+        .subtitle-style {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            fill: #7d7d7d;
+        }
+
+        .grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .lang-card {
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .lang-card:active { transform: scale(0.95); border-color: var(--accent-orange); }
+
+        .resume-card {
+            background: #252525;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar { background: #333; height: 6px; border-radius: 3px; margin-top: 10px; width: 140px; }
+        .progress { background: var(--accent-orange); height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+
+        .btn-orange {
+            background: var(--accent-orange);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 414px;
+            background: #111;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #333;
+            z-index: 1000;
+        }
+        .nav-item { color: var(--muted-text); font-size: 1.2rem; }
+        .nav-item.active { color: var(--accent-orange); }
+
+        #category-overlay {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.9); z-index:4000; justify-content:center; align-items:center;
+        }
+        .modal-content { background:var(--card-bg); width:85%; padding:25px; border-radius:30px; text-align:center; }
+        .cat-btn {
+            width: 100%; padding:15px; border-radius:18px; border:1px solid #333; 
+            background:#252525; color:white; margin-bottom:10px; display:flex; justify-content:space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="220" height="88">
+                <text x="50%" y="80" text-anchor="middle" class="sema-text-style" font-size="85" fill="#ff7d21">Sema</text>
+                <text x="50%" y="110" text-anchor="middle" class="subtitle-style" font-size="20">Speak Africa</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="header-left">
+                <p id="personalized-welcome" class="welcome-text">Loading...</p>
+                <div class="header-stats">
+                    <div class="stat-pill"><i class="fas fa-bolt"></i> <span id="current-xp-display">0</span> XP</div>
+                    <div class="stat-pill">Level <span id="user-level-display">1</span></div>
+                </div>
+            </div>
+
+            <div class="header-right-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="90" height="36">
+                    <text x="50%" y="80" text-anchor="middle" class="sema-text-style" font-size="85" fill="#ff7d21">Sema</text>
+                    <text x="50%" y="115" text-anchor="middle" class="subtitle-style" font-size="22">Speak Africa</text>
+                </svg>
+            </div>
+        </header>
+
+        <section id="language-selection">
+            <h3 style="margin-bottom:5px;">Learn African Languages</h3>
+            <p style="color:var(--muted-text); font-size:0.8rem; margin-bottom:15px;">Earn 2 XP for every language you explore</p>
+            <div class="grid-2x2">
+                <div class="lang-card" onclick="studyLanguage('nigeria_yoruba', 'Yoruba')">🇳🇬 Yoruba</div>
+                <div class="lang-card" onclick="studyLanguage('nigeria_igbo', 'Igbo')">🇳🇬 Igbo</div>
+                <div class="lang-card" onclick="studyLanguage('nigeria_hausa', 'Hausa')">🇳🇬 Hausa</div>
+                <div class="lang-card" onclick="studyLanguage('kenya_swahili', 'Swahili')">🇰🇪 Swahili</div>
+            </div>
+        </section>
+
+        <section style="margin-top:20px;">
+            <h3>Your Progress</h3>
+            <div class="resume-card">
+                <div>
+                    <p id="last-lesson-sub" style="margin:0; font-size:0.85rem;">Total XP earned</p>
+                    <div class="progress-bar"><div class="progress" id="main-progress" style="width: 0%;"></div></div>
+                </div>
+                <button class="btn-orange" onclick="scrollToLanguages()">Learn more</button>
+            </div>
+        </section>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item active"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i></a>
+        </nav>
+    </div>
+
+    <div id="category-overlay">
+        <div class="modal-content">
+            <h3 id="selected-lang-name">Select Category</h3>
+            <div style="margin-top:20px;">
+                <button class="cat-btn" onclick="startLesson('basics')"><span>Basics</span><i class="fas fa-unlock"></i></button>
+                <button class="cat-btn" style="opacity:0.5; cursor:not-allowed;"><span>Market</span><i class="fas fa-lock"></i></button>
+            </div>
+            <button onclick="closeCategoryModal()" style="background:none; border:none; color:var(--muted-text); margin-top:15px; cursor:pointer;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const userSessionCheck = JSON.parse(localStorage.getItem('sema_user'));
+        let pendingLangId = "";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) { 
+                    splash.style.opacity = '0'; 
+                    setTimeout(() => splash.style.display = 'none', 500); 
+                }
+            }, 1800);
+
+            updateDashboardStats();
+        });
+
+        function updateDashboardStats() {
+            const stats = JSON.parse(localStorage.getItem('sema_stats')) || { xp: 0 };
+            document.getElementById('current-xp-display').innerText = stats.xp;
+            document.getElementById('user-level-display').innerText = Math.floor(stats.xp / 500) + 1;
+
+            const welcomeText = document.getElementById('personalized-welcome');
+            if (userSessionCheck && welcomeText) {
+                const name = userSessionCheck.name ? userSessionCheck.name.split(' ')[0] : 'Explorer';
+                welcomeText.innerText = `Sannu, ${name}!`;
+            }
+
+            const progBar = document.getElementById('main-progress');
+            if (progBar) {
+                const progressWidth = Math.min((stats.xp / 500) * 100, 100);
+                setTimeout(() => progBar.style.width = progressWidth + '%', 600);
+            }
+        }
+
+        function studyLanguage(id, name) {
+            let stats = JSON.parse(localStorage.getItem('sema_stats')) || { xp: 0 };
+            stats.xp += 2;
+            localStorage.setItem('sema_stats', JSON.stringify(stats));
+            updateDashboardStats();
+            
+            pendingLangId = id;
+            document.getElementById('selected-lang-name').innerText = name;
+            document.getElementById('category-overlay').style.display = 'flex';
+        }
+
+        function closeCategoryModal() { document.getElementById('category-overlay').style.display = 'none'; }
+        function startLesson(cat) { window.location.href = `lesson.html?lang=${pendingLangId}&cat=${cat}`; }
+        function scrollToLanguages() { document.getElementById('language-selection').scrollIntoView({ behavior: 'smooth' }); }
+    </script>
+</body>
+</html>
