@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaking | Nizo Lugha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-black: #121212;
+            --accent-orange: #ff7d21;
+            --card-bg: #1e1e1e;
+        }
+
+        body { background: var(--bg-black); color: white; font-family: 'Open Sans'; margin: 0; display: flex; justify-content: center; }
+
+        .app-container { width: 100%; max-width: 414px; padding: 20px; height: 100vh; display: flex; flex-direction: column; text-align: center; }
+
+        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 60px; }
+
+        .phrase-box {
+            background: var(--card-bg);
+            padding: 40px 20px;
+            border-radius: 25px;
+            border: 1px solid #333;
+            margin-bottom: 40px;
+        }
+
+        .native-phrase { font-family: 'Montserrat'; font-size: 2rem; color: var(--accent-orange); margin: 0 0 10px 0; }
+        .translation { color: #b3b3b3; font-size: 1.1rem; }
+
+        /* Voice Wave Animation */
+        .wave-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            height: 100px;
+            margin-bottom: 60px;
+        }
+
+        .bar {
+            width: 4px;
+            background: var(--accent-orange);
+            border-radius: 10px;
+            height: 10px;
+            transition: height 0.1s ease;
+        }
+
+        .recording .bar { animation: quiet 1.2s ease-in-out infinite; }
+        @keyframes quiet { 0%, 100% { height: 10px; } 50% { height: 60px; } }
+
+        .mic-btn {
+            width: 90px;
+            height: 90px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            border: 8px solid rgba(255, 125, 33, 0.2);
+            color: white;
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 125, 33, 0.4);
+        }
+
+        .mic-btn.active { background: #ff4444; border-color: rgba(255, 68, 68, 0.2); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 68, 68, 0.7); } 100% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <a href="index.html" style="color:white; font-size:1.5rem;"><i class="fas fa-times"></i></a>
+            <h3 style="margin:0; font-family:'Montserrat'">Speaking Practice</h3>
+            <div style="width:24px"></div>
+        </header>
+
+        <p style="color:#b3b3b3">Repeat the phrase below:</p>
+        
+        <div class="phrase-box">
+            <h1 class="native-phrase">Báwo ni?</h1>
+            <p class="translation">"How are you?"</p>
+            <i class="fas fa-volume-up" style="margin-top: 20px; font-size: 1.2rem; cursor: pointer;"></i>
+        </div>
+
+        <div class="wave-container" id="wave-box">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+
+        <div class="mic-btn" id="mic" onclick="toggleMic()">
+            <i class="fas fa-microphone"></i>
+        </div>
+        <p id="status" style="margin-top:20px; color:var(--accent-orange); font-weight:600;">Tap to speak</p>
+    </div>
+
+    <script>
+        function toggleMic() {
+            const mic = document.getElementById('mic');
+            const wave = document.getElementById('wave-box');
+            const status = document.getElementById('status');
+            
+            mic.classList.toggle('active');
+            wave.classList.toggle('recording');
+            
+            if(mic.classList.contains('active')) {
+                status.innerText = "Listening...";
+            } else {
+                status.innerText = "Excellent! (98% match)";
+                setTimeout(() => { status.innerText = "Tap to speak again"; }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
