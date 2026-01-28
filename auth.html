@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sema | Welcome</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-black: #121212;
+            --card-bg: #1e1e1e;
+            --muted-text: #b3b3b3;
+            --nizo-orange: #ff7d21; 
+            --zambia-blue: #0047bb;
+            /* New Sema Colors */
+            --sema-purple: #8E44AD;
+        }
+
+        body { background-color: var(--bg-black); color: white; margin: 0; font-family: 'Open Sans', sans-serif; }
+        .auth-container { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Updated Logo Styles */
+        .logo-container { 
+            margin-bottom: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .sema-text {
+            font-family: 'Brush Script MT', 'Dancing Script', cursive;
+            font-size: 85px;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-family: 'Georgia', serif;
+            font-size: 20px;
+            font-style: italic;
+            fill: #7d7d7d;
+            letter-spacing: 1px;
+        }
+
+        .auth-card { 
+            background: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.05); 
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .tab-group { display: flex; background: #121212; padding: 5px; border-radius: 15px; margin-bottom: 30px; }
+        .tab { flex: 1; padding: 10px; border-radius: 12px; cursor: pointer; font-weight: bold; color: var(--muted-text); transition: 0.3s; }
+        .tab.active { background: var(--card-bg); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        .input-group { text-align: left; margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--muted-text); }
+        .input-group input { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid #333; 
+            background: #121212; 
+            color: white; 
+            outline: none; 
+            box-sizing: border-box; 
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus { border-color: var(--nizo-orange); }
+
+        .btn-auth { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 50px; 
+            border: none; 
+            background: var(--nizo-orange); 
+            color: white; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: 0.3s;
+        }
+        .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .social-login { margin-top: 25px; border-top: 1px solid #333; padding-top: 20px; }
+        .social-btn { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 50px; 
+            border: 1px solid #333; 
+            background: transparent; 
+            color: white; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            cursor: pointer; 
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="220" height="88">
+                <text x="50%" y="80" text-anchor="middle" class="sema-text">
+                    <tspan fill="#8E44AD">S</tspan><tspan fill="#F1C40F">e</tspan><tspan fill="#2980B9">m</tspan><tspan fill="#E67E22">a</tspan>
+                </text>
+                <text x="50%" y="110" text-anchor="middle" class="subtitle">Speak Africa</text>
+            </svg>
+        </div>
+
+        <div class="auth-card">
+            <div class="tab-group">
+                <div class="tab active" id="loginTab" onclick="switchTab('login')">Login</div>
+                <div class="tab" id="signupTab" onclick="switchTab('signup')">Sign Up</div>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="input-group" id="nameGroup" style="display: none;">
+                    <label for="userName">Full Name</label>
+                    <input type="text" id="userName" placeholder="Enter your name">
+                </div>
+                
+                <div class="input-group">
+                    <label for="userEmail">Email</label>
+                    <input type="email" id="userEmail" required placeholder="Enter your email">
+                </div>
+
+                <div class="input-group">
+                    <label for="userPass">Password</label>
+                    <input type="password" id="userPass" required placeholder="Enter your password">
+                </div>
+
+                <div class="input-group" id="confirmGroup" style="display: none;">
+                    <label for="confirmPass">Confirm Password</label>
+                    <input type="password" id="confirmPass" placeholder="Confirm your password">
+                </div>
+
+                <button type="submit" class="btn-auth" id="submitBtn">LOG IN</button>
+            </form>
+
+            <div class="social-login">
+                <button class="social-btn" onclick="socialLogin('google')"><i class="fab fa-google"></i> Continue with Google</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk'; 
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let mode = 'login';
+
+        function switchTab(newMode) {
+            mode = newMode;
+            document.getElementById('loginTab').classList.toggle('active', mode === 'login');
+            document.getElementById('signupTab').classList.toggle('active', mode === 'signup');
+            
+            const isSignUp = mode === 'signup';
+            document.getElementById('nameGroup').style.display = isSignUp ? 'block' : 'none';
+            document.getElementById('confirmGroup').style.display = isSignUp ? 'block' : 'none';
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = isSignUp ? 'SIGN UP' : 'LOG IN';
+            
+            // UI Polish: Use Sema Purple for Sign Up button
+            submitBtn.style.background = isSignUp ? 'var(--sema-purple)' : 'var(--nizo-orange)';
+            
+            document.getElementById('userName').required = isSignUp;
+            document.getElementById('confirmPass').required = isSignUp;
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPass').value;
+            const fullName = document.getElementById('userName').value;
+            const confirmPass = document.getElementById('confirmPass').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (mode === 'signup' && password !== confirmPass) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = "PROCESSING...";
+
+            try {
+                if (mode === 'signup') {
+                    const { data, error: authError } = await _supabase.auth.signUp({
+                        email,
+                        password,
+                        options: { data: { full_name: fullName } }
+                    });
+
+                    if (authError) throw authError;
+
+                    if (data.user) {
+                        // Create profile row to stop "Learner" tag from appearing
+                        const { error: dbError } = await _supabase
+                            .from('profiles')
+                            .insert([{ id: data.user.id, full_name: fullName, xp: 0 }]);
+
+                        if (dbError) console.error("Profile Setup Error:", dbError.message);
+
+                        localStorage.setItem('sema_user', JSON.stringify({
+                            email: data.user.email,
+                            name: fullName,
+                            id: data.user.id
+                        }));
+                        window.location.href = 'index.html'; 
+                    }
+                } else {
+                    const { data, error: loginError } = await _supabase.auth.signInWithPassword({ email, password });
+                    if (loginError) throw loginError;
+
+                    if (data.user) {
+                        localStorage.setItem('sema_user', JSON.stringify({
+                            email: data.user.email,
+                            name: data.user.user_metadata.full_name || "Learner",
+                            id: data.user.id
+                        }));
+                        window.location.href = 'index.html';
+                    }
+                }
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText;
+            }
+        }
+
+        async function socialLogin(provider) {
+            const { error } = await _supabase.auth.signInWithOAuth({ provider });
+            if (error) alert(error.message);
+        }
+    </script>
+</body>
+</html>
