@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sema | Pro Chat & Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-black: #121212; --card-bg: #1e1e1e; --accent-orange: #ff7d21;
+            --muted-text: #b3b3b3; --user-msg: #ff7d21; --other-msg: #2a2a2a;
+            --read-blue: #34b7f1; --mute-red: #ff4b4b; --admin-gold: #ffd700;
+        }
+
+        /* Theme Variants */
+        body.theme-midnight { --bg-black: #0b0e14; --card-bg: #151921; --accent-orange: #5865f2; --user-msg: #5865f2; }
+        body.theme-forest { --bg-black: #0d140d; --card-bg: #161f16; --accent-orange: #2ecc71; --user-msg: #2ecc71; }
+        body.theme-sunset { --bg-black: #140d0d; --card-bg: #1f1616; --accent-orange: #e67e22; --user-msg: #e67e22; }
+
+        body { background-color: var(--bg-black); color: white; font-family: 'Open Sans', sans-serif; margin: 0; overflow: hidden; transition: background 0.3s ease; touch-action: manipulation; }
+
+        .chat-container { display: flex; flex-direction: column; height: 100vh; max-width: 414px; margin: 0 auto; border-left: 1px solid #222; border-right: 1px solid #222; position: relative; }
+        
+        /* Admin & UI Components */
+        .admin-menu { position: fixed; background: #252525; border: 1px solid #444; border-radius: 12px; padding: 5px; display: none; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .admin-menu button { background: none; border: none; color: white; padding: 10px 15px; width: 100%; text-align: left; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+        .admin-menu button:hover { background: #333; border-radius: 8px; }
+
+        .search-container { display: none; padding: 10px; background: #1a1a1a; border-bottom: 1px solid #333; }
+        .search-container input { width: 100%; background: #222; border: 1px solid #444; border-radius: 20px; padding: 8px 15px; color: white; outline: none; }
+
+        .status-dot { width: 8px; height: 8px; background: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+        .status-online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+
+        .chat-header { padding: 15px 20px; background: #1a1a1a; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 220px; scroll-behavior: smooth; }
+
+        /* Messages */
+        #replyPreview { display: none; background: #252525; padding: 10px 15px; border-left: 4px solid var(--accent-orange); font-size: 0.8rem; justify-content: space-between; align-items: center; }
+        .message { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 0.9rem; position: relative; animation: fadeIn 0.3s ease; word-wrap: break-word; transition: transform 0.2s; }
+        .message.sent { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 4px; color: white; }
+        .message.received { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 4px; color: #eee; }
+        .message .sender { font-size: 0.7rem; display: block; margin-bottom: 4px; font-weight: 600; opacity: 0.8; cursor: pointer; }
+        .message img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; }
+        .reply-box { background: rgba(0,0,0,0.2); padding: 5px 8px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 5px; border-left: 2px solid white; }
+        .admin-badge { color: var(--admin-gold); font-size: 0.7rem; margin-left: 5px; }
+
+        /* Input Area */
+        .chat-input-wrapper { position: fixed; bottom: 80px; width: 100%; max-width: 414px; background: var(--bg-black); z-index: 100; }
+        .chat-input-area { background: var(--card-bg); padding: 8px 15px; margin: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; border: 1px solid #333; }
+        .chat-input-area input { background: transparent; border: none; color: white; flex-grow: 1; outline: none; }
+
+        /* Emoji Picker */
+        #emojiPicker { display: none; background: #1a1a1a; padding: 12px; border-top: 1px solid #333; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 280px; overflow-y: auto; }
+        .emoji-category-title { grid-column: span 7; color: var(--accent-orange); font-size: 0.7rem; font-weight: bold; padding: 8px 0; border-bottom: 1px solid #333; }
+        .emoji { cursor: pointer; font-size: 1.3rem; transition: transform 0.1s; user-select: none; text-align: center; }
+        .emoji:active { transform: scale(1.4); }
+
+        .icon-btn { background: none; border: none; color: var(--muted-text); cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        .recording-pulse { animation: pulse-red 1s infinite; color: var(--mute-red) !important; }
+        
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 414px; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 100; }
+        .nav-item { color: var(--muted-text); text-decoration: none; font-size: 1.2rem; }
+        .nav-item.active { color: var(--accent-orange); }
+        audio { filter: invert(1); max-width: 100%; height: 35px; }
+    </style>
+</head>
+<body class="theme-onyx" onclick="closeAdminMenu()">
+
+    <div id="adminMenu" class="admin-menu">
+        <button onclick="handleAdminAction('delete')" style="color:var(--mute-red);"><i class="fas fa-trash"></i> Delete for everyone</button>
+        <button onclick="handleAdminAction('reply')"><i class="fas fa-reply"></i> Reply</button>
+        <button onclick="handleAdminAction('private')"><i class="fas fa-envelope"></i> Message Privately</button>
+    </div>
+
+    <div class="chat-container">
+        <header class="chat-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-users" id="roomIcon"></i>
+                <div>
+                    <h3 id="chatTitle"><span id="liveDot" class="status-dot"></span>Sema Community</h3>
+                    <small id="backToPublic" onclick="exitPrivateChat()" style="display:none; color:var(--muted-text); cursor:pointer;"><i class="fas fa-arrow-left"></i> Back</small>
+                </div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+                <button class="icon-btn" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
+                <i class="fas fa-shield-alt" id="shieldIcon" style="font-size: 0.9rem;"></i>
+                <button class="icon-btn" onclick="cycleTheme()"><i class="fas fa-palette"></i></button>
+            </div>
+        </header>
+
+        <div id="searchBar" class="search-container">
+            <input type="text" id="searchInput" placeholder="Search messages..." oninput="filterMessages()">
+        </div>
+
+        <div class="chat-messages" id="chatWindow"></div>
+
+        <div class="chat-input-wrapper">
+            <div id="replyPreview">
+                <span id="replyText">Replying to...</span>
+                <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer"></i>
+            </div>
+            <div id="emojiPicker"></div>
+
+            <div class="chat-input-area">
+                <button class="icon-btn" onclick="triggerImage()"><i class="fas fa-image"></i></button>
+                <button class="icon-btn" onclick="toggleEmoji()"><i class="far fa-smile"></i></button>
+                <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+                <button class="icon-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
+                <button class="icon-btn" id="sendBtn" style="color:var(--accent-orange)"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadFile(this, 'images')">
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item active"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let userSession = JSON.parse(localStorage.getItem('sema_user')) || { name: "Guest", id: "u" + Date.now() };
+        const isAdmin = userSession.name.toLowerCase() === 'clinton';
+        let currentRoom = 'public', replyId = null, currentChannel = null, activeMsgId = null;
+
+        // --- 100+ EMOJIS CATEGORIZED ---
+        const emojiLibrary = {
+            "Faces": ['😊','😂','🤣','😍','😒','😘','😁','😎','🤔','🙄','🤨','🥱','😴','😋','😛','😜','🤪','😇','🥳','🤩','🤡','💀','👻','👽','🤖','💩','😺','😸','😹'],
+            "Hearts & Hands": ['❤️','💕','💖','💗','💙','💔','👌','👍','👎','🙌','🤞','✌️','👏','👋','🤝','🙏','💪','👂','🤳','✍️','💅'],
+            "Nature & Animals": ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🦁','🐯','🐨','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦄','🐝','🦋','🐞','🌲','🌸','🌈','☀️','🔥'],
+            "Food & Drink": ['🍕','🍔','🍟','🌭','🍿','🍩','🍪','🎂','🍰','🍫','🍬','🍭','🍦','🍓','🍎','🍉','🍇','🥑','🥦','🌶️','☕','🥤','🍺'],
+            "Activities & Symbols": ['🎃','🎈','🎉','🎊','🎨','🎭','🎬','🎤','🎧','🎸','🎹','🎮','🕹️','📱','💻','⌚','📷','⚡','⭐','🌟','✨','🚩','📍','💯','✅','❌']
+        };
+
+        // Initialize UI
+        if(isAdmin) document.getElementById('shieldIcon').style.color = "var(--admin-gold)";
+        
+        const picker = document.getElementById('emojiPicker');
+        for (const [cat, items] of Object.entries(emojiLibrary)) {
+            const title = document.createElement('div');
+            title.className = 'emoji-category-title'; title.innerText = cat;
+            picker.appendChild(title);
+            items.forEach(e => {
+                const s = document.createElement('span'); s.className = 'emoji'; s.innerText = e;
+                s.onclick = () => { document.getElementById('userInput').value += e; document.getElementById('userInput').focus(); };
+                picker.appendChild(s);
+            });
+        }
+
+        function toggleEmoji() { picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid'; }
+        function toggleSearch() { const b = document.getElementById('searchBar'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; }
+        function triggerImage() { document.getElementById('imageInput').click(); }
+
+        // --- VOICE LOGIC ---
+        let mediaRecorder, audioChunks = [];
+        const voiceBtn = document.getElementById('voiceBtn');
+
+        voiceBtn.onclick = async () => {
+            if (!mediaRecorder || mediaRecorder.state === "inactive") {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => uploadFile(new Blob(audioChunks, {type:'audio/webm'}), 'voice_notes');
+                mediaRecorder.start();
+                voiceBtn.classList.add('recording-pulse');
+            } else {
+                mediaRecorder.stop();
+                voiceBtn.classList.remove('recording-pulse');
+            }
+        };
+
+        // --- FILE UPLOAD (Voice & Image) ---
+        async function uploadFile(fileOrInput, bucket) {
+            const file = fileOrInput.files ? fileOrInput.files[0] : fileOrInput;
+            if (!file) return;
+            const ext = bucket === 'images' ? 'jpg' : 'webm';
+            const fileName = `${Date.now()}.${ext}`;
+            const { error } = await _supabase.storage.from(bucket).upload(fileName, file);
+            if (error) return alert("Upload failed");
+            const { data } = _supabase.storage.from(bucket).getPublicUrl(fileName);
+            bucket === 'images' ? sendMsg(null, null, data.publicUrl) : sendMsg(null, data.publicUrl);
+        }
+
+        // --- SEND & AI LOGIC ---
+        async function sendMsg(text = null, audio = null, image = null) {
+            const input = document.getElementById('userInput');
+            const val = text || input.value.trim();
+            if (!val && !audio && !image) return;
+
+            let replyTxt = null;
+            if (replyId) {
+                const orig = document.querySelector(`#msg-${replyId}`);
+                replyTxt = orig ? orig.innerText.split('\n').pop().substring(0, 30) : null;
+            }
+
+            input.value = '';
+            const { error } = await _supabase.from('messages').insert([{
+                text: val, audio_url: audio, image_url: image,
+                user_id: userSession.id, user_name: userSession.name,
+                room_id: currentRoom, reply_id: replyId, reply_to_text: replyTxt
+            }]);
+
+            if (val?.toLowerCase().startsWith('@ai')) handleAI(val.replace('@ai','').trim());
+            cancelReply();
+        }
+
+        async function handleAI(p) {
+            setTimeout(async () => {
+                await _supabase.from('messages').insert([{
+                    text: `🤖 AI: Analyzing "${p}"... I am online!`,
+                    user_id: 'ai-bot', user_name: 'Sema AI', room_id: currentRoom
+                }]);
+            }, 1000);
+        }
+
+        // --- MESSAGE RENDERING ---
+        function appendMessage(msg) {
+            if (document.getElementById(`msg-${msg.id}`)) return;
+            const isMe = msg.user_id === userSession.id;
+            const div = document.createElement('div');
+            div.id = `msg-${msg.id}`; div.className = `message ${isMe ? 'sent' : 'received'}`;
+            
+            // Admin long press / right click context menu
+            div.oncontextmenu = (e) => {
+                if(!isAdmin) return;
+                e.preventDefault();
+                showAdminMenu(e.pageX, e.pageY, msg.id, msg.user_id, msg.user_name);
+            };
+
+            const crown = msg.user_name.toLowerCase() === 'clinton' ? '<i class="fas fa-crown admin-badge"></i>' : '';
+            let content = `<span class="sender" onclick="startPrivate('${msg.user_id}', '${msg.user_name}')">${msg.user_name}${crown}</span>`;
+            if (msg.reply_to_text) content += `<div class="reply-box"><b>Replying to:</b> ${msg.reply_to_text}</div>`;
+            
+            if (msg.image_url) content += `<img src="${msg.image_url}">`;
+            else if (msg.audio_url) content += `<audio src="${msg.audio_url}" controls></audio>`;
+            else content += `<span>${msg.text}</span>`;
+
+            div.innerHTML = content;
+            document.getElementById('chatWindow').appendChild(div);
+            document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
+        }
+
+        // --- ADMIN & SYSTEM ---
+        function showAdminMenu(x, y, mid, uid, uname) {
+            activeMsgId = mid; activeUserId = uid; activeUserName = uname;
+            const m = document.getElementById('adminMenu');
+            m.style.display = 'block'; m.style.left = x + 'px'; m.style.top = y + 'px';
+        }
+        function closeAdminMenu() { document.getElementById('adminMenu').style.display = 'none'; }
+        
+        async function handleAdminAction(type) {
+            if (type === 'delete') await _supabase.from('messages').delete().eq('id', activeMsgId);
+            if (type === 'reply') setReply(activeMsgId, "Message", activeUserName);
+            if (type === 'private') startPrivate(activeUserId, activeUserName);
+        }
+
+        function setReply(id, txt, user) {
+            replyId = id; document.getElementById('replyPreview').style.display = 'flex';
+            document.getElementById('replyText').innerText = `Replying to ${user}`;
+        }
+        function cancelReply() { replyId = null; document.getElementById('replyPreview').style.display = 'none'; }
+
+        function startPrivate(id, name) {
+            if (id === userSession.id) return;
+            currentRoom = `private_${[userSession.id, id].sort().join('_')}`;
+            document.getElementById('chatTitle').innerText = name;
+            document.getElementById('backToPublic').style.display = 'block';
+            fetchMessages(); setupRealtime();
+        }
+
+        function exitPrivateChat() {
+            currentRoom = 'public'; document.getElementById('chatTitle').innerText = "Sema Community";
+            document.getElementById('backToPublic').style.display = 'none';
+            fetchMessages(); setupRealtime();
+        }
+
+        function cycleTheme() {
+            const t = ['theme-midnight', 'theme-forest', 'theme-sunset', 'theme-onyx'];
+            let next = (t.indexOf(document.body.className) + 1) % t.length;
+            document.body.className = t[next];
+        }
+
+        async function fetchMessages() {
+            const { data } = await _supabase.from('messages').select('*').eq('room_id', currentRoom).order('created_at', {ascending:true});
+            document.getElementById('chatWindow').innerHTML = '';
+            data?.forEach(appendMessage);
+        }
+
+        function setupRealtime() {
+            if (currentChannel) _supabase.removeChannel(currentChannel);
+            currentChannel = _supabase.channel(`room-${currentRoom}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
+                    if (p.eventType === 'INSERT' && p.new.room_id === currentRoom) appendMessage(p.new);
+                    if (p.eventType === 'DELETE') document.getElementById(`msg-${p.old.id}`)?.remove();
+                }).subscribe();
+        }
+
+        document.getElementById('sendBtn').onclick = () => sendMsg();
+        document.getElementById('userInput').onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
+
+        fetchMessages();
+        setupRealtime();
+    </script>
+</body>
+</html>
