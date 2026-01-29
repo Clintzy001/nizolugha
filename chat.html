@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sema | Pro Chat & Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-black: #121212; --card-bg: #1e1e1e; --accent-orange: #ff7d21;
+            --muted-text: #b3b3b3; --user-msg: #ff7d21; --other-msg: #2a2a2a;
+            --read-blue: #34b7f1; --mute-red: #ff4b4b; --admin-gold: #ffd700;
+        }
+
+        body.theme-midnight { --bg-black: #0b0e14; --card-bg: #151921; --accent-orange: #5865f2; --user-msg: #5865f2; }
+        body.theme-forest { --bg-black: #0d140d; --card-bg: #161f16; --accent-orange: #2ecc71; --user-msg: #2ecc71; }
+        body.theme-sunset { --bg-black: #140d0d; --card-bg: #1f1616; --accent-orange: #e67e22; --user-msg: #e67e22; }
+
+        body { background-color: var(--bg-black); color: white; font-family: 'Open Sans', sans-serif; margin: 0; overflow: hidden; transition: background 0.3s ease; touch-action: manipulation; }
+
+        .chat-container { display: flex; flex-direction: column; height: 100vh; max-width: 414px; margin: 0 auto; border-left: 1px solid #222; border-right: 1px solid #222; position: relative; }
+        
+        .chat-header { padding: 15px 20px; background: #1a1a1a; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 220px; scroll-behavior: smooth; }
+
+        .message { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 0.9rem; position: relative; animation: fadeIn 0.3s ease; word-wrap: break-word; }
+        .message.sent { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 4px; color: white; }
+        .message.received { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 4px; color: #eee; }
+        
+        .status-dot { width: 8px; height: 8px; background: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .status-online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+
+        .chat-input-wrapper { position: fixed; bottom: 80px; width: 100%; max-width: 414px; background: var(--bg-black); z-index: 100; }
+        .chat-input-area { background: var(--card-bg); padding: 8px 15px; margin: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; border: 1px solid #333; }
+        .chat-input-area input { background: transparent; border: none; color: white; flex-grow: 1; outline: none; }
+
+        .icon-btn { background: none; border: none; color: var(--muted-text); cursor: pointer; font-size: 1.1rem; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 414px; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <header class="chat-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-users"></i>
+                <div>
+                    <h3 id="chatTitle"><span id="liveDot" class="status-dot"></span>Sema Community</h3>
+                    <small id="backToPublic" onclick="exitPrivateChat()" style="display:none; color:var(--muted-text); cursor:pointer;">Back to Public</small>
+                </div>
+            </div>
+            <button class="icon-btn" onclick="cycleTheme()"><i class="fas fa-palette"></i></button>
+        </header>
+
+        <div class="chat-messages" id="chatWindow"></div>
+
+        <div class="chat-input-wrapper">
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+                <button class="icon-btn" id="sendBtn" style="color:var(--accent-orange)"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <i class="fas fa-home"></i>
+            <i class="fas fa-comment-dots" style="color:var(--accent-orange)"></i>
+            <i class="fas fa-user"></i>
+        </nav>
+    </div>
+
+    <script>
+        // --- CREDENTIALS VERIFIED ---
+        const SUPABASE_URL = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let userSession = JSON.parse(localStorage.getItem('sema_user')) || { name: "Guest", id: "u" + Date.now() };
+        let currentRoom = 'public';
+        let currentChannel = null;
+
+        async function fetchMessages() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.innerHTML = '<p style="text-align:center; color:gray;">Loading...</p>';
+            
+            const { data, error } = await _supabase
+                .from('messages')
+                .select('*')
+                .eq('room_id', currentRoom)
+                .order('created_at', { ascending: true });
+
+            chatWindow.innerHTML = '';
+            if (data) data.forEach(appendMessage);
+        }
+
+        function appendMessage(msg) {
+            if (document.getElementById(`msg-${msg.id}`)) return;
+            const isMe = msg.user_id === userSession.id;
+            const div = document.createElement('div');
+            div.id = `msg-${msg.id}`;
+            div.className = `message ${isMe ? 'sent' : 'received'}`;
+            div.innerHTML = `<small style="display:block; opacity:0.7;">${msg.user_name}</small>${msg.text}`;
+            document.getElementById('chatWindow').appendChild(div);
+            document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+
+            const { error } = await _supabase.from('messages').insert([{
+                text: text,
+                user_id: userSession.id,
+                user_name: userSession.name,
+                room_id: currentRoom
+            }]);
+
+            if (error) {
+                console.error(error);
+                alert("Failed to send. Check RLS policies!");
+            }
+        }
+
+        function setupRealtime() {
+            if (currentChannel) _supabase.removeChannel(currentChannel);
+
+            const dot = document.getElementById('liveDot');
+            dot.classList.remove('status-online');
+
+            currentChannel = _supabase
+                .channel(`room-${currentRoom}`)
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'messages', 
+                    filter: `room_id=eq.${currentRoom}` 
+                }, (payload) => {
+                    appendMessage(payload.new);
+                })
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') dot.classList.add('status-online');
+                });
+        }
+
+        document.getElementById('sendBtn').onclick = sendMsg;
+        document.getElementById('userInput').onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
+
+        // Start app
+        fetchMessages();
+        setupRealtime();
+
+        function cycleTheme() {
+            const themes = ['theme-midnight', 'theme-forest', 'theme-sunset', ''];
+            document.body.className = themes[Math.floor(Math.random()*themes.length)];
+        }
+    </script>
+</body>
+</html>
