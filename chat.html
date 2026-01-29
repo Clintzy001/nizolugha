@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sema | Live Community Chat</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-black: #121212;
+            --card-bg: #1e1e1e;
+            --accent-orange: #ff7d21;
+            --muted-text: #b3b3b3;
+            --user-msg: #ff7d21;
+            --other-msg: #2a2a2a;
+            --read-blue: #34b7f1;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: white;
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            overflow: hidden; 
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 414px;
+            margin: 0 auto;
+            border-left: 1px solid #222;
+            border-right: 1px solid #222;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header h3 { margin: 0; font-size: 1.1rem; color: var(--accent-orange); }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 150px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            position: relative;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Read Receipts / Ticks Styling */
+        .status-ticks {
+            font-size: 0.7rem;
+            margin-left: 5px;
+            float: right;
+            margin-top: 5px;
+            color: rgba(255,255,255,0.6);
+        }
+        .status-ticks.read { color: var(--read-blue); }
+
+        .system-msg {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted-text);
+            font-size: 0.75rem;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 10px 0;
+            border: 1px solid #333;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .message .sender {
+            font-size: 0.65rem;
+            display: block;
+            margin-bottom: 4px;
+            opacity: 0.7;
+            font-weight: 600;
+        }
+
+        .message.sent {
+            background: var(--user-msg);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.received {
+            background: var(--other-msg);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-input-wrapper {
+            position: fixed;
+            bottom: 80px;
+            width: 100%;
+            max-width: 414px;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            background: var(--bg-black);
+            z-index: 10;
+        }
+
+        .chat-input-area {
+            background: var(--card-bg);
+            padding: 8px 15px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #333;
+        }
+
+        .chat-input-area input {
+            background: transparent;
+            border: none;
+            color: white;
+            flex-grow: 1;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .send-btn {
+            background: var(--accent-orange);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; max-width: 414px;
+            background: #111; display: flex; justify-content: space-around;
+            padding: 15px 0; border-top: 1px solid #333;
+            z-index: 10;
+        }
+        .nav-item { color: var(--muted-text); text-decoration: none; font-size: 1.2rem; }
+        .nav-item.active { color: var(--accent-orange); }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <header class="chat-header">
+            <a href="index.html" style="color: white;"><i class="fas fa-arrow-left"></i></a>
+            <div>
+                <h3>Sema Community</h3>
+                <span style="color: #4CAF50; font-size: 0.75rem;"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Live Chat</span>
+            </div>
+        </header>
+
+        <div class="chat-messages" id="chatWindow"></div>
+
+        <div class="chat-input-wrapper">
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+                <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item active"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk';
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const userSession = JSON.parse(localStorage.getItem('sema_user')) || { name: "Guest", id: "user_" + Math.random().toString(16).slice(2, 8) };
+
+        const sendBtn = document.getElementById('sendBtn');
+        const userInput = document.getElementById('userInput');
+        const chatWindow = document.getElementById('chatWindow');
+
+        // Observer to mark messages as read when they appear on screen
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const msgId = entry.target.getAttribute('data-id');
+                    const isReceived = entry.target.classList.contains('received');
+                    if (isReceived) markAsRead(msgId);
+                }
+            });
+        }, { threshold: 1.0 });
+
+        async function markAsRead(id) {
+            await _supabase.from('messages').update({ is_read: true }).eq('id', id).eq('is_read', false);
+        }
+
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function fetchMessages() {
+            const fortyHoursAgo = new Date(Date.now() - 40 * 60 * 60 * 1000).toISOString();
+            
+            const { data, error } = await _supabase
+                .from('messages')
+                .select('*')
+                .gt('created_at', fortyHoursAgo) 
+                .order('created_at', { ascending: true });
+            
+            if (data) {
+                chatWindow.innerHTML = '<div class="system-msg">Messages older than 40h have been cleared</div>';
+                data.forEach(msg => appendMessage(msg));
+                scrollToBottom();
+            }
+        }
+
+        function appendMessage(msg) {
+            let existing = document.getElementById(`msg-${msg.id}`);
+            if (existing) {
+                // If message exists, just update its read status ticks
+                const ticks = existing.querySelector('.status-ticks');
+                if (ticks && msg.is_read) {
+                    ticks.innerHTML = '<i class="fas fa-check-double"></i>';
+                    ticks.classList.add('read');
+                }
+                return;
+            }
+
+            const isMe = msg.user_id === userSession.id;
+            const msgDiv = document.createElement('div');
+            msgDiv.id = `msg-${msg.id}`;
+            msgDiv.setAttribute('data-id', msg.id);
+            msgDiv.className = `message ${isMe ? 'sent' : 'received'}`;
+            
+            let ticksHTML = isMe ? `<span class="status-ticks ${msg.is_read ? 'read' : ''}">
+                <i class="fas ${msg.is_read ? 'fa-check-double' : 'fa-check'}"></i>
+            </span>` : '';
+
+            msgDiv.innerHTML = `
+                <span class="sender">${isMe ? 'You' : msg.user_name}</span>
+                ${msg.text} ${ticksHTML}
+            `;
+
+            chatWindow.appendChild(msgDiv);
+            if (!isMe) observer.observe(msgDiv);
+            scrollToBottom();
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === "") return;
+
+            const { data, error } = await _supabase.from('messages').insert([
+                { 
+                    text: text, 
+                    user_id: userSession.id, 
+                    user_name: userSession.name ? userSession.name.split(' ')[0] : 'User'
+                }
+            ]).select();
+
+            if (!error) {
+                userInput.value = "";
+                if(data) appendMessage(data[0]);
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        _supabase
+          .channel('schema-db-changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, 
+          payload => { 
+              if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                  appendMessage(payload.new); 
+              } else if (payload.eventType === 'DELETE') {
+                  const el = document.getElementById(`msg-${payload.old.id}`);
+                  if (el) el.remove();
+              }
+          })
+          .subscribe();
+
+        fetchMessages();
+    </script>
+</body>
+</html>
