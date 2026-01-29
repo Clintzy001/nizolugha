@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sema | Pro Chat & Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-black: #121212; --card-bg: #1e1e1e; --accent-orange: #ff7d21;
+            --muted-text: #b3b3b3; --user-msg: #ff7d21; --other-msg: #2a2a2a;
+            --read-blue: #34b7f1; --mute-red: #ff4b4b; --admin-gold: #ffd700;
+        }
+
+        /* Theme Variants */
+        body.theme-midnight { --bg-black: #0b0e14; --card-bg: #151921; --accent-orange: #5865f2; --user-msg: #5865f2; }
+        body.theme-forest { --bg-black: #0d140d; --card-bg: #161f16; --accent-orange: #2ecc71; --user-msg: #2ecc71; }
+        body.theme-sunset { --bg-black: #140d0d; --card-bg: #1f1616; --accent-orange: #e67e22; --user-msg: #e67e22; }
+
+        body { background-color: var(--bg-black); color: white; font-family: 'Open Sans', sans-serif; margin: 0; overflow: hidden; transition: background 0.3s ease; touch-action: manipulation; }
+
+        .chat-container { display: flex; flex-direction: column; height: 100vh; max-width: 414px; margin: 0 auto; border-left: 1px solid #222; border-right: 1px solid #222; position: relative; }
+        
+        /* Admin Context Menu */
+        .admin-menu { 
+            position: fixed; background: #252525; border: 1px solid #444; border-radius: 12px; 
+            padding: 5px; display: none; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .admin-menu button { background: none; border: none; color: white; padding: 10px 15px; width: 100%; text-align: left; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+        .admin-menu button:hover { background: #333; border-radius: 8px; }
+
+        .mute-banner { background: rgba(255, 75, 75, 0.15); color: var(--mute-red); text-align: center; padding: 5px; font-size: 0.7rem; display: none; border-bottom: 1px solid var(--mute-red); }
+        .search-container { display: none; padding: 10px; background: #1a1a1a; border-bottom: 1px solid #333; }
+        .search-container input { width: 100%; background: #222; border: 1px solid #444; border-radius: 20px; padding: 8px 15px; color: white; outline: none; }
+
+        .chat-header { padding: 15px 20px; background: #1a1a1a; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 200px; scroll-behavior: smooth; }
+
+        /* Reply Preview */
+        #replyPreview { display: none; background: #252525; padding: 10px 15px; border-left: 4px solid var(--accent-orange); font-size: 0.8rem; justify-content: space-between; align-items: center; }
+
+        .message { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 0.9rem; position: relative; animation: fadeIn 0.3s ease; word-wrap: break-word; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .message.sent { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 4px; color: white; }
+        .message.received { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 4px; color: #eee; }
+        
+        .message .sender { font-size: 0.7rem; display: block; margin-bottom: 4px; font-weight: 600; opacity: 0.8; cursor: pointer; }
+        .message img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; }
+        .reply-box { background: rgba(0,0,0,0.2); padding: 5px 8px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 5px; border-left: 2px solid white; }
+        .admin-badge { color: var(--admin-gold); font-size: 0.7rem; margin-left: 5px; }
+
+        .chat-input-wrapper { position: fixed; bottom: 80px; width: 100%; max-width: 414px; background: var(--bg-black); z-index: 100; }
+        .chat-input-area { background: var(--card-bg); padding: 8px 15px; margin: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; border: 1px solid #333; }
+        .chat-input-area input { background: transparent; border: none; color: white; flex-grow: 1; outline: none; }
+
+        #emojiPicker { display: none; background: #1a1a1a; padding: 10px; border-top: 1px solid #333; flex-wrap: wrap; gap: 10px; height: 100px; overflow-y: auto; }
+        .emoji { cursor: pointer; font-size: 1.2rem; }
+
+        .icon-btn { background: none; border: none; color: var(--muted-text); cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        .recording-pulse { color: #ff4d4d; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 414px; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; z-index: 100; }
+        .nav-item { color: var(--muted-text); text-decoration: none; font-size: 1.2rem; }
+        .nav-item.active { color: var(--accent-orange); }
+        audio { height: 30px; width: 150px; filter: invert(1); }
+    </style>
+</head>
+<body class="theme-onyx" onclick="closeMenus()">
+
+    <div id="adminMenu" class="admin-menu">
+        <button onclick="handleAdminAction('delete')" style="color:#ff4b4b;"><i class="fas fa-trash"></i> Delete for everyone</button>
+        <button onclick="handleAdminAction('reply')"><i class="fas fa-reply"></i> Reply</button>
+        <button onclick="handleAdminAction('kick')"><i class="fas fa-user-slash"></i> Kick User</button>
+    </div>
+
+    <div class="chat-container">
+        <div id="muteBanner" class="mute-banner"><i class="fas fa-bell-slash"></i> Notifications are muted</div>
+        
+        <header class="chat-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-users" id="roomIcon"></i>
+                <div>
+                    <h3 id="chatTitle">Sema Community</h3>
+                    <small id="backToPublic" onclick="exitPrivateChat()" style="display:none; color:var(--muted-text); cursor:pointer;"><i class="fas fa-arrow-left"></i> Back</small>
+                </div>
+            </div>
+            <div style="display:flex; gap:15px;">
+                <button class="icon-btn" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
+                <i class="fas fa-shield-alt" id="shieldIcon" style="color:var(--muted-text); font-size: 0.9rem; margin-top:5px;"></i>
+                <button class="icon-btn" onclick="cycleTheme()"><i class="fas fa-palette"></i></button>
+            </div>
+        </header>
+
+        <div id="searchBar" class="search-container">
+            <input type="text" id="searchInput" placeholder="Search messages..." oninput="filterMessages()">
+        </div>
+
+        <div class="chat-messages" id="chatWindow"></div>
+
+        <div class="chat-input-wrapper">
+            <div id="replyPreview">
+                <span id="replyText">Replying to...</span>
+                <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer"></i>
+            </div>
+            <div id="emojiPicker">
+                <span class="emoji" onclick="addEmoji('😊')">😊</span><span class="emoji" onclick="addEmoji('😂')">😂</span>
+                <span class="emoji" onclick="addEmoji('🔥')">🔥</span><span class="emoji" onclick="addEmoji('👍')">👍</span>
+                <span class="emoji" onclick="addEmoji('❤️')">❤️</span><span class="emoji" onclick="addEmoji('😮')">😮</span>
+            </div>
+            <div class="chat-input-area">
+                <button class="icon-btn" onclick="triggerImageUpload()"><i class="fas fa-image"></i></button>
+                <button class="icon-btn" onclick="toggleEmoji()"><i class="far fa-smile"></i></button>
+                <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+                <button class="icon-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
+                <button class="icon-btn" id="sendBtn" style="color:var(--accent-orange)"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <input type="file" id="imageInput" hidden accept="image/*" onchange="uploadImage(this)">
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i></a>
+            <a href="chat.html" class="nav-item active"><i class="fas fa-comment-dots"></i></a>
+            <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ujwlymybttrsxrhncvgc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqd2x5bXlidHRyc3hyaG5jdmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTk3NzcsImV4cCI6MjA4NTAzNTc3N30.ktec3F5318jazTqUHnUBpC2cK9IG-3lm84Z_QfvOEJk';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let userSession = JSON.parse(localStorage.getItem('sema_user')) || { name: "Clinton", id: "u" + Date.now() };
+        localStorage.setItem('sema_user', JSON.stringify(userSession));
+
+        const isAdmin = userSession.name.toLowerCase() === 'clinton';
+        let currentRoom = 'public', replyId = null, activeMsgId = null, activeUserId = null;
+        let isMuted = localStorage.getItem('sema_muted') === 'true';
+        const themes = ['theme-onyx', 'theme-midnight', 'theme-forest', 'theme-sunset'];
+
+        if(isAdmin) document.getElementById('shieldIcon').style.color = "var(--admin-gold)";
+
+        // --- SEARCH & THEME ---
+        function toggleSearch() { const bar = document.getElementById('searchBar'); bar.style.display = bar.style.display === 'block' ? 'none' : 'block'; }
+        function filterMessages() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.message').forEach(m => m.style.display = m.innerText.toLowerCase().includes(term) ? 'block' : 'none');
+        }
+        function cycleTheme() {
+            let next = (themes.indexOf(document.body.className) + 1) % themes.length;
+            document.body.className = themes[next];
+            localStorage.setItem('sema_theme', themes[next]);
+        }
+        if(localStorage.getItem('sema_theme')) document.body.className = localStorage.getItem('sema_theme');
+
+        // --- REPLIES & EMOJIS ---
+        function setReply(id, text, user) {
+            replyId = id;
+            document.getElementById('replyPreview').style.display = 'flex';
+            document.getElementById('replyText').innerText = `Replying to ${user}: ${text.substring(0,25)}...`;
+        }
+        function cancelReply() { replyId = null; document.getElementById('replyPreview').style.display = 'none'; }
+        function toggleEmoji() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'flex' ? 'none' : 'flex'; }
+        function addEmoji(e) { document.getElementById('userInput').value += e; }
+
+        // --- GESTURES & ADMIN ---
+        function attachGestures(el, msg) {
+            let startX = 0;
+            el.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                holdTimer = setTimeout(() => showAdminMenu(e, msg.id, msg.user_id), 600);
+            });
+            el.addEventListener('touchend', (e) => {
+                clearTimeout(holdTimer);
+                if (e.changedTouches[0].clientX - startX > 60) {
+                    el.style.transform = 'translateX(50px)';
+                    setTimeout(() => { el.style.transform = 'translateX(0)'; setReply(msg.id, msg.text || "Media", msg.user_name); }, 200);
+                }
+            });
+            el.oncontextmenu = (e) => { e.preventDefault(); showAdminMenu(e, msg.id, msg.user_id); };
+        }
+
+        function showAdminMenu(e, msgId, uId) {
+            activeMsgId = msgId; activeUserId = uId;
+            const m = document.getElementById('adminMenu');
+            m.style.display = 'block';
+            m.style.left = (e.pageX || e.touches[0].pageX) + 'px';
+            m.style.top = (e.pageY || e.touches[0].pageY) + 'px';
+        }
+        function closeMenus() { document.getElementById('adminMenu').style.display = 'none'; }
+
+        async function handleAdminAction(type) {
+            if (type === 'delete') await _supabase.from('messages').delete().eq('id', activeMsgId);
+            if (type === 'kick') alert("User " + activeUserId + " kicked.");
+            if (type === 'reply') {
+                const msgEl = document.getElementById(`msg-${activeMsgId}`);
+                setReply(activeMsgId, msgEl.innerText, "User");
+            }
+            closeMenus();
+        }
+
+        // --- IMAGE & VOICE ---
+        function triggerImageUpload() { document.getElementById('imageInput').click(); }
+        async function uploadImage(input) {
+            if (!input.files[0]) return;
+            const file = input.files[0];
+            const path = `chat/${Date.now()}_${file.name}`;
+            const { data } = await _supabase.storage.from('voicenotes').upload(path, file);
+            if (data) {
+                const { data: url } = _supabase.storage.from('voicenotes').getPublicUrl(path);
+                sendMsg(null, null, url.publicUrl);
+            }
+        }
+
+        // --- CORE CHAT ---
+        function appendMessage(msg) {
+            if (document.getElementById(`msg-${msg.id}`)) return;
+            const isMe = msg.user_id === userSession.id;
+            const div = document.createElement('div');
+            div.id = `msg-${msg.id}`; div.className = `message ${isMe ? 'sent' : 'received'}`;
+            attachGestures(div, msg);
+
+            const adminTag = msg.user_name.toLowerCase() === 'clinton' ? '<i class="fas fa-crown admin-badge"></i>' : '';
+            let html = `<span class="sender" onclick="startPrivateChat('${msg.user_id}', '${msg.user_name}')">${msg.user_name}${adminTag}</span>`;
+            
+            if (msg.reply_to_text) html += `<div class="reply-box"><b>Replying to:</b><br>${msg.reply_to_text}</div>`;
+            if (msg.image_url) html += `<img src="${msg.image_url}">`;
+            else if (msg.audio_url) html += `<audio controls src="${msg.audio_url}"></audio>`;
+            else html += `<span>${msg.text}</span>`;
+
+            div.innerHTML = html;
+            document.getElementById('chatWindow').appendChild(div);
+            document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
+        }
+
+        async function sendMsg(text = null, audio = null, image = null) {
+            const val = text || document.getElementById('userInput').value.trim();
+            if (!val && !audio && !image) return;
+
+            let replyContent = null;
+            if (replyId) {
+                const original = document.querySelector(`#msg-${replyId}`);
+                replyContent = original ? original.innerText.split('\n').pop() : "Message";
+            }
+
+            await _supabase.from('messages').insert([{
+                text: val, audio_url: audio, image_url: image,
+                user_id: userSession.id, user_name: userSession.name,
+                room_id: currentRoom, reply_id: replyId, reply_to_text: replyContent
+            }]);
+
+            document.getElementById('userInput').value = '';
+            cancelReply();
+        }
+
+        function startPrivateChat(id, name) {
+            if (id === userSession.id) return;
+            currentRoom = `private_${[userSession.id, id].sort().join('_')}`;
+            document.getElementById('chatTitle').innerText = name;
+            document.getElementById('backToPublic').style.display = 'block';
+            fetchMessages();
+        }
+
+        function exitPrivateChat() {
+            currentRoom = 'public';
+            document.getElementById('chatTitle').innerText = "Sema Community";
+            document.getElementById('backToPublic').style.display = 'none';
+            fetchMessages();
+        }
+
+        async function fetchMessages() {
+            document.getElementById('chatWindow').innerHTML = '';
+            const { data } = await _supabase.from('messages').select('*').eq('room_id', currentRoom).order('created_at', {ascending:true});
+            data?.forEach(appendMessage);
+        }
+
+        document.getElementById('sendBtn').onclick = () => sendMsg();
+        _supabase.channel('global').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
+            if (p.eventType === 'DELETE') document.getElementById(`msg-${p.old.id}`)?.remove();
+            else if (p.new.room_id === currentRoom) appendMessage(p.new);
+        }).subscribe();
+
+        fetchMessages();
+    </script>
+</body>
+</html>
